@@ -151,11 +151,38 @@
 
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         th, td { border: 1px solid #cbd5e0; padding: 8px; text-align: center; font-size: 13px; }
-        th { background-color: #edf2f7; color: #4a5568; font-weight: bold; }
+        th { background-color: #edf2f7; color: #4a5568; font-weight: bold; position: relative; }
         
-        .asig-title { text-align: left; font-weight: bold; width: 35%; background-color: #fcfcfc; }
-        .input-nota { width: 45px; text-align: center; padding: 4px; font-weight: bold; border: 1px solid #cbd5e0; border-radius: 4px; }
-        .sub-promedio { font-weight: bold; background-color: #f7fafc; width: 55px; }
+        .header-btn-container {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .btn-header-adjust {
+            background-color: #cbd5e0;
+            color: var(--dark);
+            border: none;
+            border-radius: 3px;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: background 0.15s;
+        }
+        .btn-header-adjust:hover {
+            background-color: var(--primary-light);
+            color: white;
+        }
+
+        .asig-title { text-align: left; font-weight: bold; width: 30%; background-color: #fcfcfc; }
+        .input-nota { width: 42px; text-align: center; padding: 4px; font-weight: bold; border: 1px solid #cbd5e0; border-radius: 4px; }
+        .sub-promedio { font-weight: bold; background-color: #f7fafc; width: 50px; }
         
         .aprobado { color: var(--success); }
         .reprobado { color: var(--danger); }
@@ -229,7 +256,7 @@
             .lbl-print-meta { font-weight: bold; background-color: #f2f2f2 !important; width: 18%; }
 
             .print-data-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-            .print-data-table th, .print-data-table td { border: 1px solid black !important; padding: 6px 4px; font-size: 11px; }
+            .print-data-table th, .print-data-table td { border: 1px solid black !important; padding: 6px 2px; font-size: 10px; }
             .print-data-table th { background-color: #f2f2f2 !important; font-weight: bold; }
             
             .print-footer-grid { display: flex; justify-content: space-between; gap: 15px; margin-top: 10px; }
@@ -291,7 +318,7 @@
         </div>
 
         <div class="ficha-notas" id="seccionFicha">
-            <div id="fichaVacia" style="color: #a0aec0; text-align: center; padding: 6px0px 0;">
+            <div id="fichaVacia" style="color: #a0aec0; text-align: center; padding: 60px 0;">
                 <i class="fa-solid fa-folder-open" style="font-size: 45px; margin-bottom: 10px;"></i>
                 <p>Selecciona un alumno de la lista lateral para visualizar su recuadro de calificaciones.</p>
             </div>
@@ -317,16 +344,27 @@
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
-                            <tr>
+                            <tr id="headerSemestres">
                                 <th rowspan="2" style="text-align: left;">Asignaturas / Talleres</th>
-                                <th colspan="4">Primer Semestre</th>
-                                <th colspan="4">Segundo Semestre</th>
+                                <th id="thSemestre1">
+                                    Primer Semestre
+                                    <div class="header-btn-container no-print">
+                                        <button class="btn-header-adjust" onclick="cambiarCantNotas(1, 1)" title="Añadir nota">+</button>
+                                        <button class="btn-header-adjust" onclick="cambiarCantNotas(1, -1)" title="Quitar nota">-</button>
+                                    </div>
+                                </th>
+                                <th id="thSemestre2">
+                                    Segundo Semestre
+                                    <div class="header-btn-container no-print">
+                                        <button class="btn-header-adjust" onclick="cambiarCantNotas(2, 1)" title="Añadir nota">+</button>
+                                        <button class="btn-header-adjust" onclick="cambiarCantNotas(2, -1)" title="Quitar nota">-</button>
+                                    </div>
+                                </th>
                                 <th rowspan="2">Prom.<br>Anual</th>
                                 <th rowspan="2" class="no-print">Borrar</th>
                             </tr>
-                            <tr>
-                                <th>1</th><th>2</th><th>3</th><th style="background-color: #cbd5e0; color: black;">S1</th>
-                                <th>1</th><th>2</th><th>3</th><th style="background-color: #cbd5e0; color: black;">S2</th>
+                            <tr id="subHeaderNotas">
+                                <!-- Se llena dinámicamente -->
                             </tr>
                         </thead>
                         <tbody id="cuerpoTablaAsignaturas"></tbody>
@@ -374,6 +412,9 @@
     let datosInst = JSON.parse(localStorage.getItem('datosInst_v4')) || { colegio: "", localidad: "", curso: "", profesor: "" };
     let logoGuardado = localStorage.getItem('schoolLogoBase64_v4') || "";
     
+    // Configuración dinámica de cantidad de notas por semestre
+    let cantNotas = JSON.parse(localStorage.getItem('cantNotas_v5')) || { s1: 3, s2: 3 };
+
     let asignaturas = JSON.parse(localStorage.getItem('asignaturas_v4')) || [
         'LENGUA Y LITERATURA', 'IDIOMA EXTRANJERO: INGLÉS', 'MATEMÁTICA', 
         'CIENCIAS NATURALES', 'HISTORIA, GEOGRAFÍA Y CS. SOCIALES', 
@@ -393,11 +434,39 @@
         "Valora y respeta la cultura mapuche."
     ];
 
+    // Migración e integridad de la estructura de datos para que soporte columnas dinámicas de forma limpia
+    function migrarEstructuraDatos() {
+        alumnos.forEach(alumno => {
+            if (!alumno.notas) alumno.notas = {};
+            
+            asignaturas.forEach(asig => {
+                let notasMateria = alumno.notas[asig];
+                
+                // Si está en el formato de arreglo plano antiguo (ej. [0,0,0,0,0,0]), migramos a objeto estructurado
+                if (Array.isArray(notasMateria)) {
+                    const antiguoArr = notasMateria;
+                    alumno.notas[asig] = {
+                        s1: [antiguoArr[0] || 0, antiguoArr[1] || 0, antiguoArr[2] || 0],
+                        s2: [antiguoArr[3] || 0, antiguoArr[4] || 0, antiguoArr[5] || 0]
+                    };
+                } else if (!notasMateria) {
+                    alumno.notas[asig] = { s1: [], s2: [] };
+                }
+
+                // Ajustar el tamaño del arreglo a la configuración actual
+                while (alumno.notas[asig].s1.length < cantNotas.s1) { alumno.notas[asig].s1.push(0); }
+                while (alumno.notas[asig].s2.length < cantNotas.s2) { alumno.notas[asig].s2.push(0); }
+            });
+        });
+        guardarDatosLocales();
+    }
+
     function guardarDatosLocales() {
         localStorage.setItem('alumnos_v4', JSON.stringify(alumnos));
         localStorage.setItem('asignaturas_v4', JSON.stringify(asignaturas));
         localStorage.setItem('alumnoActivoIdx_v4', alumnoActivoIdx);
         localStorage.setItem('datosInst_v4', JSON.stringify(datosInst));
+        localStorage.setItem('cantNotas_v5', JSON.stringify(cantNotas));
     }
 
     function inicializarApp() {
@@ -411,6 +480,7 @@
         if (logoGuardado) { img.src = logoGuardado; img.style.display = 'block'; icon.style.display = 'none'; }
         else { img.style.display = 'none'; icon.style.display = 'block'; }
 
+        migrarEstructuraDatos();
         renderizarListaAlumnos();
         cargarFichaAlumnoActivo();
     }
@@ -461,7 +531,14 @@
             observaciones: ""
         };
 
-        asignaturas.forEach(asig => { nuevoAlumno.notas[asig] = [0,0,0,0,0,0]; });
+        // Rellenar con arreglos dinámicos vacíos según configuración de cantNotas
+        asignaturas.forEach(asig => {
+            nuevoAlumno.notas[asig] = {
+                s1: Array(cantNotas.s1).fill(0),
+                s2: Array(cantNotas.s2).fill(0)
+            };
+        });
+        
         criteriosConceptuales.forEach((crit, critIdx) => { nuevoAlumno.conceptos[`c${critIdx}`] = { s1: "S", s2: "S" }; });
 
         alumnos.push(nuevoAlumno);
@@ -489,7 +566,13 @@
         if (!nueva || asignaturas.includes(nueva)) return;
 
         asignaturas.push(nueva);
-        alumnos.forEach(al => { if (!al.notas) al.notas = {}; al.notas[nueva] = [0,0,0,0,0,0]; });
+        alumnos.forEach(al => {
+            if (!al.notas) al.notas = {};
+            al.notas[nueva] = {
+                s1: Array(cantNotas.s1).fill(0),
+                s2: Array(cantNotas.s2).fill(0)
+            };
+        });
         input.value = '';
         guardarDatosLocales();
         cargarFichaAlumnoActivo();
@@ -502,6 +585,31 @@
             guardarDatosLocales();
             cargarFichaAlumnoActivo();
         }
+    }
+
+    // Cambiar dinámicamente la cantidad de columnas del Primer o Segundo Semestre
+    function cambiarCantNotas(semestre, cambio) {
+        if (semestre === 1) {
+            cantNotas.s1 = Math.max(1, cantNotas.s1 + cambio);
+        } else {
+            cantNotas.s2 = Math.max(1, cantNotas.s2 + cambio);
+        }
+        
+        // Ajustar arreglos existentes para cada alumno
+        alumnos.forEach(al => {
+            asignaturas.forEach(asig => {
+                if (!al.notas[asig]) al.notas[asig] = { s1: [], s2: [] };
+                
+                let sArr = semestre === 1 ? al.notas[asig].s1 : al.notas[asig].s2;
+                let targetSize = semestre === 1 ? cantNotas.s1 : cantNotas.s2;
+                
+                while (sArr.length < targetSize) { sArr.push(0); }
+                if (sArr.length > targetSize) { sArr.length = targetSize; }
+            });
+        });
+
+        guardarDatosLocales();
+        cargarFichaAlumnoActivo();
     }
 
     function cargarFichaAlumnoActivo() {
@@ -520,6 +628,19 @@
         document.getElementById('lblRecuadroCurso').textContent = datosInst.curso || '---';
         document.getElementById('lblRecuadroProfesor').textContent = datosInst.profesor || '---';
 
+        // Configurar Colspan dinámico en cabeceras de tabla
+        document.getElementById('thSemestre1').colSpan = cantNotas.s1 + 1;
+        document.getElementById('thSemestre2').colSpan = cantNotas.s2 + 1;
+
+        // Construir fila secundaria de números (N1, N2, N3...) dinámicamente
+        const subHeader = document.getElementById('subHeaderNotas');
+        let subHeaderHTML = '';
+        for (let i = 1; i <= cantNotas.s1; i++) { subHeaderHTML += `<th>${i}</th>`; }
+        subHeaderHTML += `<th style="background-color: #cbd5e0; color: black;">S1</th>`;
+        for (let i = 1; i <= cantNotas.s2; i++) { subHeaderHTML += `<th>${i}</th>`; }
+        subHeaderHTML += `<th style="background-color: #cbd5e0; color: black;">S2</th>`;
+        subHeader.innerHTML = subHeaderHTML;
+
         renderizarTablaCalificaciones(alumno);
 
         document.getElementById('asist_s1_trab').value = alumno.asistencia.s1.trab || 0;
@@ -536,11 +657,13 @@
         document.getElementById('txtObservaciones').value = alumno.observaciones || '';
     }
 
-    function calcularSemestralesYAnual(notasArr) {
-        const s1Notas = notasArr.slice(0,3).filter(n => n > 0);
-        const s2Notas = notasArr.slice(3,6).filter(n => n > 0);
+    function calcularSemestralesYAnual(notasObj) {
+        const s1Notas = (notasObj.s1 || []).filter(n => n > 0);
+        const s2Notas = (notasObj.s2 || []).filter(n => n > 0);
+        
         const s1 = s1Notas.length > 0 ? (s1Notas.reduce((a,b)=>a+b,0) / s1Notas.length) : 0;
         const s2 = s2Notas.length > 0 ? (s2Notas.reduce((a,b)=>a+b,0) / s2Notas.length) : 0;
+        
         let anual = 0;
         if(s1 > 0 && s2 > 0) anual = (s1 + s2) / 2;
         else if (s1 > 0) anual = s1;
@@ -558,16 +681,21 @@
         cuerpo.innerHTML = '';
 
         asignaturas.forEach(asig => {
-            if (!alumno.notas[asig]) alumno.notas[asig] = [0,0,0,0,0,0];
             const notas = alumno.notas[asig];
             const resumen = calcularSemestralesYAnual(notas);
 
-            let s1Celdas = '', s2Celdas = '';
-            for(let i=0; i<3; i++) {
-                s1Celdas += `<td><input type="number" step="0.1" min="1" max="7" class="input-nota" value="${notas[i]>0?notas[i]:''}" placeholder="-" onchange="actualizarNotaFicha(${i}, '${asig}', this.value)"></td>`;
+            // Celdas primer semestre
+            let s1Celdas = '';
+            for(let i = 0; i < cantNotas.s1; i++) {
+                const val = notas.s1[i] > 0 ? notas.s1[i] : '';
+                s1Celdas += `<td><input type="number" step="0.1" min="1" max="7" class="input-nota" value="${val}" placeholder="-" onchange="actualizarNotaFicha(1, ${i}, '${asig}', this.value)"></td>`;
             }
-            for(let i=3; i<6; i++) {
-                s2Celdas += `<td><input type="number" step="0.1" min="1" max="7" class="input-nota" value="${notas[i]>0?notas[i]:''}" placeholder="-" onchange="actualizarNotaFicha(${i}, '${asig}', this.value)"></td>`;
+
+            // Celdas segundo semestre
+            let s2Celdas = '';
+            for(let i = 0; i < cantNotas.s2; i++) {
+                const val = notas.s2[i] > 0 ? notas.s2[i] : '';
+                s2Celdas += `<td><input type="number" step="0.1" min="1" max="7" class="input-nota" value="${val}" placeholder="-" onchange="actualizarNotaFicha(2, ${i}, '${asig}', this.value)"></td>`;
             }
 
             const tr = document.createElement('tr');
@@ -582,11 +710,17 @@
         });
     }
 
-    function actualizarNotaFicha(idx, asig, val) {
+    function actualizarNotaFicha(semestre, idx, asig, val) {
         let formateado = val.replace(',', '.');
         const nota = parseFloat(formateado);
         if (!isNaN(nota) && (nota < 1 || nota > 7)) { alert("Escala válida de 1.0 a 7.0"); cargarFichaAlumnoActivo(); return; }
-        alumnos[alumnoActivoIdx].notas[asig][idx] = isNaN(nota) ? 0 : nota;
+        
+        if (semestre === 1) {
+            alumnos[alumnoActivoIdx].notas[asig].s1[idx] = isNaN(nota) ? 0 : nota;
+        } else {
+            alumnos[alumnoActivoIdx].notas[asig].s2[idx] = isNaN(nota) ? 0 : nota;
+        }
+        
         guardarDatosLocales();
         cargarFichaAlumnoActivo();
     }
@@ -631,22 +765,43 @@
     }
 
     function actualizarConcepto(key, semestre, val) { alumnos[alumnoActivoIdx].conceptos[key][semestre] = val; guardarDatosLocales(); }
-    function guardarObservaciones() { alumnos[alumnoActivoIdx].observaciones = document.getElementById('txtObservaciones').value; guardarDatosLocales(); }
+    function guardarObservations() { alumnos[alumnoActivoIdx].observaciones = document.getElementById('txtObservaciones').value; guardarDatosLocales(); }
+    function guardarObservaciones() { guardarObservations(); }
 
     function imprimirInformeActual() {
         if (alumnoActivoIdx === -1) { alert("Seleccione un alumno."); return; }
         const contenedor = document.getElementById('contenedorImpresionOficial'); contenedor.innerHTML = '';
         const alumno = alumnos[alumnoActivoIdx];
 
+        // Construir cabeceras de notas dinámicas
+        let printHeadersHTML = '';
+        for (let i = 1; i <= cantNotas.s1; i++) { printHeadersHTML += `<th>${i}</th>`; }
+        printHeadersHTML += `<th style="background-color: #f2f2f2 !important;">S1</th>`;
+        for (let i = 1; i <= cantNotas.s2; i++) { printHeadersHTML += `<th>${i}</th>`; }
+        printHeadersHTML += `<th style="background-color: #f2f2f2 !important;">S2</th>`;
+
         let filasAsignaturasHTML = '';
         asignaturas.forEach(asig => {
-            const notas = alumno.notas[asig] || [0,0,0,0,0,0];
+            const notas = alumno.notas[asig] || { s1: [], s2: [] };
             const resumen = calcularSemestralesYAnual(notas);
+            
+            let s1Celdas = '';
+            for (let i = 0; i < cantNotas.s1; i++) {
+                s1Celdas += `<td>${notas.s1[i] > 0 ? notas.s1[i].toFixed(1) : ''}</td>`;
+            }
+
+            let s2Celdas = '';
+            for (let i = 0; i < cantNotas.s2; i++) {
+                s2Celdas += `<td>${notas.s2[i] > 0 ? notas.s2[i].toFixed(1) : ''}</td>`;
+            }
+
             filasAsignaturasHTML += `
                 <tr>
                     <td style="text-align:left; font-weight:bold;">${asig}</td>
-                    <td>${notas[0]>0?notas[0].toFixed(1):''}</td><td>${notas[1]>0?notas[1].toFixed(1):''}</td><td>${notas[2]>0?notas[2].toFixed(1):''}</td><td style="font-weight:bold; background:#f2f2f2;">${resumen.s1}</td>
-                    <td>${notas[3]>0?notas[3].toFixed(1):''}</td><td>${notas[4]>0?notas[4].toFixed(1):''}</td><td>${notas[5]>0?notas[5].toFixed(1):''}</td><td style="font-weight:bold; background:#f2f2f2;">${resumen.s2}</td>
+                    ${s1Celdas}
+                    <td style="font-weight:bold; background:#f2f2f2;">${resumen.s1}</td>
+                    ${s2Celdas}
+                    <td style="font-weight:bold; background:#f2f2f2;">${resumen.s2}</td>
                     <td style="font-weight:bold; background:#dbdbdb;">${resumen.anual}</td>
                 </tr>`;
         });
@@ -656,6 +811,9 @@
             const eval = alumno.conceptos[`c${idx}`] || { s1: "S", s2: "S" };
             filasConceptosHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #ddd; padding:3px 0;"><span>${idx+1}.- ${crit}</span><strong>[ ${eval.s1} | ${eval.s2} ]</strong></div>`;
         });
+
+        const totalColumnasSemestre1 = cantNotas.s1 + 1;
+        const totalColumnasSemestre2 = cantNotas.s2 + 1;
 
         const hoja = document.createElement('div');
         hoja.className = 'hoja-print';
@@ -684,10 +842,13 @@
             <table class="print-data-table">
                 <thead>
                     <tr>
-                        <th rowspan="2">Asignaturas de Aprendizaje</th><th colspan="4">Primer Semestre</th><th colspan="4">Segundo Semestre</th><th rowspan="2">Prom.<br>Anual</th>
+                        <th rowspan="2">Asignaturas de Aprendizaje</th>
+                        <th colspan="${totalColumnasSemestre1}">Primer Semestre</th>
+                        <th colspan="${totalColumnasSemestre2}">Segundo Semestre</th>
+                        <th rowspan="2">Prom.<br>Anual</th>
                     </tr>
                     <tr>
-                        <th>1</th><th>2</th><th>3</th><th>S1</th><th>1</th><th>2</th><th>3</th><th>S2</th>
+                        ${printHeadersHTML}
                     </tr>
                 </thead>
                 <tbody>${filasAsignaturasHTML}</tbody>
