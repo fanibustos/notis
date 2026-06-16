@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NotaFácil - Informe de Notas Vertical</title>
+    <title>NotaFácil - Sistema de Informes Escolares</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -208,6 +208,21 @@
         .btn-success { background-color: var(--success); color: white; }
         .btn-danger { background-color: var(--danger); color: white; }
         .btn-small-del { padding: 4px 8px; font-size: 11px; background-color: #fed7d7; color: #9b2c2c; }
+        .btn-small-del:hover { background-color: var(--danger); color: white; }
+
+        /* MODALES PERSONALIZADOS (REEMPLAZO DE ALERTS) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); display: none;
+            align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-box {
+            background: white; padding: 25px; border-radius: 10px;
+            max-width: 400px; width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .modal-box h3 { font-size: 16px; margin-bottom: 10px; color: var(--primary); }
+        .modal-box p { font-size: 13px; margin-bottom: 20px; color: #4a5568; line-height: 1.5; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
         /* ==========================================
            DISEÑO DE IMPRESIÓN LIMPIO (ESTILO COLEGIO)
@@ -216,7 +231,7 @@
 
         @media print {
             body { background: white; padding: 0; margin: 0; color: black; }
-            .container, .no-print { display: none !important; }
+            .container, .no-print, .modal-overlay { display: none !important; }
             .informe-impresion-unica { display: block !important; }
 
             .hoja-print {
@@ -282,9 +297,14 @@
             <h1><i class="fa-solid fa-graduation-cap"></i> NotaFácil</h1>
         </div>
         
-        <button onclick="imprimirInformeActual()" class="btn-success">
-            <i class="fa-solid fa-print"></i> Imprimir Reporte Alumno
-        </button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="imprimirInformeActual()" class="btn-primary">
+                <i class="fa-solid fa-print"></i> Imprimir Alumno Activo
+            </button>
+            <button onclick="imprimirTodosLosInformes()" class="btn-success">
+                <i class="fa-solid fa-images"></i> Imprimir Todos los Alumnos
+            </button>
+        </div>
     </header>
 
     <div class="info-institucional">
@@ -331,7 +351,7 @@
                     <div class="dato-linea"><strong>Profesor Jefe:</strong> <span id="lblRecuadroProfesor">-</span></div>
                     <div class="dato-linea" style="display: flex; justify-content: space-between; align-items: center; border:none; padding:0;">
                         <span><strong>Estado:</strong> Regular</span>
-                        <button onclick="eliminarAlumnoActivo()" class="btn-danger btn-small-del"><i class="fa-solid fa-user-minus"></i> Quitar Alumno</button>
+                        <button onclick="confirmarEliminarAlumno()" class="btn-danger btn-small-del"><i class="fa-solid fa-user-minus"></i> Quitar Alumno</button>
                     </div>
                 </div>
 
@@ -406,13 +426,33 @@
     </div>
 </div>
 
+<!-- CAPAS DE MODALES PERSONALIZADOS (SIN ALERTS) -->
+<div id="modalAlert" class="modal-overlay">
+    <div class="modal-box">
+        <h3 id="modalAlertTitle"><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Atención</h3>
+        <p id="modalAlertText">Mensaje de alerta</p>
+        <div class="modal-actions">
+            <button class="btn-primary" onclick="cerrarAlerta()">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalConfirm" class="modal-overlay">
+    <div class="modal-box">
+        <h3 id="modalConfirmTitle"><i class="fa-solid fa-question-circle" style="color:var(--primary-light)"></i> ¿Está seguro?</h3>
+        <p id="modalConfirmText">Mensaje de confirmación</p>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="cerrarConfirmacion(false)">Cancelar</button>
+            <button class="btn-danger" id="btnConfirmAction">Confirmar</button>
+        </div>
+    </div>
+</div>
+
 <div id="contenedorImpresionOficial" class="informe-impresion-unica"></div>
 
 <script>
     let datosInst = JSON.parse(localStorage.getItem('datosInst_v4')) || { colegio: "", localidad: "", curso: "", profesor: "" };
     let logoGuardado = localStorage.getItem('schoolLogoBase64_v4') || "";
-    
-    // Configuración dinámica de cantidad de notas por semestre
     let cantNotas = JSON.parse(localStorage.getItem('cantNotas_v5')) || { s1: 3, s2: 3 };
 
     let asignaturas = JSON.parse(localStorage.getItem('asignaturas_v4')) || [
@@ -434,7 +474,28 @@
         "Valora y respeta la cultura mapuche."
     ];
 
-    // Migración e integridad de la estructura de datos para que soporte columnas dinámicas de forma limpia
+    // GESTOR DE MODALES DE INTERFAZ
+    function mostrarAlerta(titulo, mensaje) {
+        document.getElementById('modalAlertTitle').innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> ${titulo}`;
+        document.getElementById('modalAlertText').textContent = mensaje;
+        document.getElementById('modalAlert').style.display = 'flex';
+    }
+    function cerrarAlerta() { document.getElementById('modalAlert').style.display = 'none'; }
+
+    function mostrarConfirmacion(titulo, mensaje, callbackAction) {
+        document.getElementById('modalConfirmTitle').innerHTML = `<i class="fa-solid fa-question-circle" style="color:var(--primary-light)"></i> ${titulo}`;
+        document.getElementById('modalConfirmText').textContent = mensaje;
+        
+        const okBtn = document.getElementById('btnConfirmAction');
+        okBtn.onclick = function() {
+            cerrarConfirmacion();
+            callbackAction();
+        };
+        
+        document.getElementById('modalConfirm').style.display = 'flex';
+    }
+    function cerrarConfirmacion() { document.getElementById('modalConfirm').style.display = 'none'; }
+
     function migrarEstructuraDatos() {
         alumnos.forEach(alumno => {
             if (!alumno.notas) alumno.notas = {};
@@ -442,7 +503,6 @@
             asignaturas.forEach(asig => {
                 let notasMateria = alumno.notas[asig];
                 
-                // Si está en el formato de arreglo plano antiguo (ej. [0,0,0,0,0,0]), migramos a objeto estructurado
                 if (Array.isArray(notasMateria)) {
                     const antiguoArr = notasMateria;
                     alumno.notas[asig] = {
@@ -453,7 +513,6 @@
                     alumno.notas[asig] = { s1: [], s2: [] };
                 }
 
-                // Ajustar el tamaño del arreglo a la configuración actual
                 while (alumno.notas[asig].s1.length < cantNotas.s1) { alumno.notas[asig].s1.push(0); }
                 while (alumno.notas[asig].s2.length < cantNotas.s2) { alumno.notas[asig].s2.push(0); }
             });
@@ -531,7 +590,6 @@
             observaciones: ""
         };
 
-        // Rellenar con arreglos dinámicos vacíos según configuración de cantNotas
         asignaturas.forEach(asig => {
             nuevoAlumno.notas[asig] = {
                 s1: Array(cantNotas.s1).fill(0),
@@ -549,15 +607,19 @@
         cargarFichaAlumnoActivo();
     }
 
-    function eliminarAlumnoActivo() {
+    function confirmarEliminarAlumno() {
         if (alumnoActivoIdx === -1) return;
-        if (confirm(`¿Eliminar permanentemente a ${alumnos[alumnoActivoIdx].nombre}?`)) {
-            alumnos.splice(alumnoActivoIdx, 1);
-            alumnoActivoIdx = alumnos.length > 0 ? 0 : -1;
-            guardarDatosLocales();
-            renderizarListaAlumnos();
-            cargarFichaAlumnoActivo();
-        }
+        mostrarConfirmacion(
+            "Eliminar Estudiante",
+            `¿Desea quitar de forma definitiva a ${alumnos[alumnoActivoIdx].nombre}?`,
+            function() {
+                alumnos.splice(alumnoActivoIdx, 1);
+                alumnoActivoIdx = alumnos.length > 0 ? 0 : -1;
+                guardarDatosLocales();
+                renderizarListaAlumnos();
+                cargarFichaAlumnoActivo();
+            }
+        );
     }
 
     function crearAsignaturaGlobal() {
@@ -579,15 +641,18 @@
     }
 
     function eliminarAsignaturaGlobal(nomAsig) {
-        if (confirm(`¿Quitar "${nomAsig}" del plan de estudios?`)) {
-            asignaturas = asignaturas.filter(a => a !== nomAsig);
-            alumnos.forEach(al => { if(al.notas) delete al.notas[nomAsig]; });
-            guardarDatosLocales();
-            cargarFichaAlumnoActivo();
-        }
+        mostrarConfirmacion(
+            "Remover Asignatura",
+            `¿Quitar la asignatura "${nomAsig}" del plan para todos los estudiantes?`,
+            function() {
+                asignaturas = asignaturas.filter(a => a !== nomAsig);
+                alumnos.forEach(al => { if(al.notas) delete al.notas[nomAsig]; });
+                guardarDatosLocales();
+                cargarFichaAlumnoActivo();
+            }
+        );
     }
 
-    // Cambiar dinámicamente la cantidad de columnas del Primer o Segundo Semestre
     function cambiarCantNotas(semestre, cambio) {
         if (semestre === 1) {
             cantNotas.s1 = Math.max(1, cantNotas.s1 + cambio);
@@ -595,7 +660,6 @@
             cantNotas.s2 = Math.max(1, cantNotas.s2 + cambio);
         }
         
-        // Ajustar arreglos existentes para cada alumno
         alumnos.forEach(al => {
             asignaturas.forEach(asig => {
                 if (!al.notas[asig]) al.notas[asig] = { s1: [], s2: [] };
@@ -623,16 +687,13 @@
         fichaVacia.style.display = 'none'; contenidoFicha.style.display = 'block';
         const alumno = alumnos[alumnoActivoIdx];
 
-        // Rellenar recuadro de datos personales estilo Excel
         document.getElementById('lblRecuadroNombre').textContent = alumno.nombre;
         document.getElementById('lblRecuadroCurso').textContent = datosInst.curso || '---';
         document.getElementById('lblRecuadroProfesor').textContent = datosInst.profesor || '---';
 
-        // Configurar Colspan dinámico en cabeceras de tabla
         document.getElementById('thSemestre1').colSpan = cantNotas.s1 + 1;
         document.getElementById('thSemestre2').colSpan = cantNotas.s2 + 1;
 
-        // Construir fila secundaria de números (N1, N2, N3...) dinámicamente
         const subHeader = document.getElementById('subHeaderNotas');
         let subHeaderHTML = '';
         for (let i = 1; i <= cantNotas.s1; i++) { subHeaderHTML += `<th>${i}</th>`; }
@@ -684,14 +745,12 @@
             const notas = alumno.notas[asig];
             const resumen = calcularSemestralesYAnual(notas);
 
-            // Celdas primer semestre
             let s1Celdas = '';
             for(let i = 0; i < cantNotas.s1; i++) {
                 const val = notas.s1[i] > 0 ? notas.s1[i] : '';
                 s1Celdas += `<td><input type="number" step="0.1" min="1" max="7" class="input-nota" value="${val}" placeholder="-" onchange="actualizarNotaFicha(1, ${i}, '${asig}', this.value)"></td>`;
             }
 
-            // Celdas segundo semestre
             let s2Celdas = '';
             for(let i = 0; i < cantNotas.s2; i++) {
                 const val = notas.s2[i] > 0 ? notas.s2[i] : '';
@@ -713,7 +772,7 @@
     function actualizarNotaFicha(semestre, idx, asig, val) {
         let formateado = val.replace(',', '.');
         const nota = parseFloat(formateado);
-        if (!isNaN(nota) && (nota < 1 || nota > 7)) { alert("Escala válida de 1.0 a 7.0"); cargarFichaAlumnoActivo(); return; }
+        if (!isNaN(nota) && (nota < 1 || nota > 7)) { mostrarAlerta("Nota Inválida", "La escala de notas permitida en Chile es de 1.0 a 7.0."); cargarFichaAlumnoActivo(); return; }
         
         if (semestre === 1) {
             alumnos[alumnoActivoIdx].notas[asig].s1[idx] = isNaN(nota) ? 0 : nota;
@@ -768,12 +827,11 @@
     function guardarObservations() { alumnos[alumnoActivoIdx].observaciones = document.getElementById('txtObservaciones').value; guardarDatosLocales(); }
     function guardarObservaciones() { guardarObservations(); }
 
-    function imprimirInformeActual() {
-        if (alumnoActivoIdx === -1) { alert("Seleccione un alumno."); return; }
-        const contenedor = document.getElementById('contenedorImpresionOficial'); contenedor.innerHTML = '';
-        const alumno = alumnos[alumnoActivoIdx];
+    // ==========================================
+    // SISTEMA DE PLANILLAS DE IMPRESIÓN DINÁMICAS
+    // ==========================================
 
-        // Construir cabeceras de notas dinámicas
+    function generarHTMLInformeAlumno(alumno) {
         let printHeadersHTML = '';
         for (let i = 1; i <= cantNotas.s1; i++) { printHeadersHTML += `<th>${i}</th>`; }
         printHeadersHTML += `<th style="background-color: #f2f2f2 !important;">S1</th>`;
@@ -787,12 +845,12 @@
             
             let s1Celdas = '';
             for (let i = 0; i < cantNotas.s1; i++) {
-                s1Celdas += `<td>${notas.s1[i] > 0 ? notas.s1[i].toFixed(1) : ''}</td>`;
+                s1Celdas += `<td>${notas.s1 && notas.s1[i] > 0 ? notas.s1[i].toFixed(1) : ''}</td>`;
             }
 
             let s2Celdas = '';
             for (let i = 0; i < cantNotas.s2; i++) {
-                s2Celdas += `<td>${notas.s2[i] > 0 ? notas.s2[i].toFixed(1) : ''}</td>`;
+                s2Celdas += `<td>${notas.s2 && notas.s2[i] > 0 ? notas.s2[i].toFixed(1) : ''}</td>`;
             }
 
             filasAsignaturasHTML += `
@@ -815,71 +873,91 @@
         const totalColumnasSemestre1 = cantNotas.s1 + 1;
         const totalColumnasSemestre2 = cantNotas.s2 + 1;
 
-        const hoja = document.createElement('div');
-        hoja.className = 'hoja-print';
-        hoja.innerHTML = `
-            <div class="print-header">
-                ${logoGuardado ? `<img src="${logoGuardado}" class="print-logo">` : `<div style="width:70px;"></div>`}
-                <div class="print-title-box">
-                    <h2>${datosInst.colegio || 'ESCUELA PARTICULAR'}</h2>
-                    <h3>"${datosInst.localidad || 'REGISTRO INTERNO'}"</h3>
-                    <p>INFORME DE CALIFICACIONES RENDIDAS</p>
+        return `
+            <div class="hoja-print">
+                <div class="print-header">
+                    ${logoGuardado ? `<img src="${logoGuardado}" class="print-logo">` : `<div style="width:70px;"></div>`}
+                    <div class="print-title-box">
+                        <h2>${datosInst.colegio || 'ESCUELA PARTICULAR'}</h2>
+                        <h3>"${datosInst.localidad || 'REGISTRO INTERNO'}"</h3>
+                        <p>INFORME DE CALIFICACIONES RENDIDAS</p>
+                    </div>
+                    <div style="width:70px;"></div>
                 </div>
-                <div style="width:70px;"></div>
-            </div>
 
-            <table class="print-meta-recuadro">
-                <tr>
-                    <td class="lbl-print-meta">ALUMNO:</td><td style="font-weight:bold; font-size:13px;">${alumno.nombre}</td>
-                    <td class="lbl-print-meta">CURSO:</td><td style="font-weight:bold;">${datosInst.curso || '---'}</td>
-                </tr>
-                <tr>
-                    <td class="lbl-print-meta">PROF. JEFE:</td><td>${datosInst.profesor || '---'}</td>
-                    <td class="lbl-print-meta">FECHA:</td><td>${new Date().toLocaleDateString('es-CL')}</td>
-                </tr>
-            </table>
-
-            <table class="print-data-table">
-                <thead>
+                <table class="print-meta-recuadro">
                     <tr>
-                        <th rowspan="2">Asignaturas de Aprendizaje</th>
-                        <th colspan="${totalColumnasSemestre1}">Primer Semestre</th>
-                        <th colspan="${totalColumnasSemestre2}">Segundo Semestre</th>
-                        <th rowspan="2">Prom.<br>Anual</th>
+                        <td class="lbl-print-meta">ALUMNO:</td><td style="font-weight:bold; font-size:13px;">${alumno.nombre}</td>
+                        <td class="lbl-print-meta">CURSO:</td><td style="font-weight:bold;">${datosInst.curso || '---'}</td>
                     </tr>
                     <tr>
-                        ${printHeadersHTML}
+                        <td class="lbl-print-meta">PROF. JEFE:</td><td>${datosInst.profesor || '---'}</td>
+                        <td class="lbl-print-meta">FECHA:</td><td>${new Date().toLocaleDateString('es-CL')}</td>
                     </tr>
-                </thead>
-                <tbody>${filasAsignaturasHTML}</tbody>
-            </table>
+                </table>
 
-            <div class="print-footer-grid">
-                <div class="print-footer-block">
-                    <h4>Desarrollo Personal y Social</h4>
-                    ${filasConceptosHTML}
-                </div>
-                <div class="print-footer-block" style="display:flex; flex-direction:column; justify-content:space-between;">
-                    <div>
-                        <h4>Asistencia Escolar</h4>
-                        <table style="width:100%; border-collapse:collapse; font-size:9px; text-align:center;">
-                            <tr style="background:#f2f2f2;"><th>Semestre</th><th>Trabajados</th><th>Asistidos</th><th>Inasist.</th><th>Atrasos</th></tr>
-                            <tr><td><strong>I SEM</strong></td><td>${alumno.asistencia.s1.trab}</td><td>${alumno.asistencia.s1.asist}</td><td>${alumno.asistencia.s1.inasist}</td><td>${alumno.asistencia.s1.atrasos}</td></tr>
-                            <tr><td><strong>II SEM</strong></td><td>${alumno.asistencia.s2.trab}</td><td>${alumno.asistencia.s2.asist}</td><td>${alumno.asistencia.s2.inasist}</td><td>${alumno.asistencia.s2.atrasos}</td></tr>
-                        </table>
-                    </div>
-                    <div style="border:1px solid black; padding:5px; background:#fafafa; font-size:10px; flex:1; min-height:65px; margin-top:8px;">
-                        <strong>OBSERVACIONES:</strong> <p style="font-style:italic; margin-top:2px;">${alumno.observaciones || 'Sin registros.'}</p>
-                    </div>
-                </div>
-            </div>
+                <table class="print-data-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Asignaturas de Aprendizaje</th>
+                            <th colspan="${totalColumnasSemestre1}">Primer Semestre</th>
+                            <th colspan="${totalColumnasSemestre2}">Segundo Semestre</th>
+                            <th rowspan="2">Prom.<br>Anual</th>
+                        </tr>
+                        <tr>
+                            ${printHeadersHTML}
+                        </tr>
+                    </thead>
+                    <tbody>${filasAsignaturasHTML}</tbody>
+                </table>
 
-            <div class="print-firmas">
-                <div class="linea-firma-print"><br><br>Profesor(a) Jefe</div>
-                <div class="linea-firma-print"><br><br>Dirección del Establecimiento</div>
+                <div class="print-footer-grid">
+                    <div class="print-footer-block">
+                        <h4>Desarrollo Personal y Social</h4>
+                        ${filasConceptosHTML}
+                    </div>
+                    <div class="print-footer-block" style="display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <h4>Asistencia Escolar</h4>
+                            <table style="width:100%; border-collapse:collapse; font-size:9px; text-align:center;">
+                                <tr style="background:#f2f2f2;"><th>Semestre</th><th>Trabajados</th><th>Asistidos</th><th>Inasist.</th><th>Atrasos</th></tr>
+                                <tr><td><strong>I SEM</strong></td><td>${alumno.asistencia.s1.trab || 0}</td><td>${alumno.asistencia.s1.asist || 0}</td><td>${alumno.asistencia.s1.inasist || 0}</td><td>${alumno.asistencia.s1.atrasos || 0}</td></tr>
+                                <tr><td><strong>II SEM</strong></td><td>${alumno.asistencia.s2.trab || 0}</td><td>${alumno.asistencia.s2.asist || 0}</td><td>${alumno.asistencia.s2.inasist || 0}</td><td>${alumno.asistencia.s2.atrasos || 0}</td></tr>
+                            </table>
+                        </div>
+                        <div style="border:1px solid black; padding:5px; background:#fafafa; font-size:10px; flex:1; min-height:65px; margin-top:8px;">
+                            <strong>OBSERVACIONES:</strong> <p style="font-style:italic; margin-top:2px;">${alumno.observaciones || 'Sin registros.'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="print-firmas">
+                    <div class="linea-firma-print"><br><br>Profesor(a) Jefe</div>
+                    <div class="linea-firma-print"><br><br>Dirección del Establecimiento</div>
+                </div>
             </div>`;
+    }
 
-        contenedor.appendChild(hoja);
+    function imprimirInformeActual() {
+        if (alumnoActivoIdx === -1) { mostrarAlerta("Sin Selección", "Por favor, seleccione un alumno de la lista antes de imprimir."); return; }
+        const contenedor = document.getElementById('contenedorImpresionOficial'); 
+        contenedor.innerHTML = '';
+        
+        const alumno = alumnos[alumnoActivoIdx];
+        contenedor.innerHTML = generarHTMLInformeAlumno(alumno);
+        window.print();
+    }
+
+    function imprimirTodosLosInformes() {
+        if (alumnos.length === 0) { mostrarAlerta("Lista Vacía", "Debe registrar al menos un alumno para poder imprimir informes."); return; }
+        const contenedor = document.getElementById('contenedorImpresionOficial'); 
+        contenedor.innerHTML = '';
+
+        // Iterar de forma secuencial por todos los alumnos y acoplarlos
+        alumnos.forEach(alumno => {
+            contenedor.innerHTML += generarHTMLInformeAlumno(alumno);
+        });
+
         window.print();
     }
 
