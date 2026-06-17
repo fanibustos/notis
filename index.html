@@ -13,8 +13,8 @@
             --success: #15803d;       /* Verde Académico */
             --success-light: #f0fdf4; /* Fondo Verde Claro */
             --danger: #dc2626;        /* Rojo de Alerta */
-            --bg: #f1f5f9;            /* Fondo Gris Claro */
-            --border: #94a3b8;        /* Gris de Bordes */
+            --bg: #f8fafc;            /* Fondo Gris Claro */
+            --border: #64748b;        /* Gris de Bordes */
             --text: #334155;          /* Texto Gris Carbono */
         }
 
@@ -75,10 +75,11 @@
             margin-bottom: 15px;
         }
 
+        /* Logo Box con marco sólido limpio sin rayitas */
         .logo-box {
             width: 110px;
             height: 110px;
-            border: 2px dashed var(--border);
+            border: 1px solid var(--border);
             border-radius: 8px;
             display: flex;
             flex-direction: column;
@@ -128,7 +129,6 @@
             gap: 10px;
         }
 
-        /* inputs del sistema */
         .form-control {
             padding: 8px 12px;
             border: 1px solid var(--border);
@@ -283,6 +283,13 @@
             font-weight: bold;
         }
 
+        /* Evitar que se dividan los conceptos y la asistencia al imprimir */
+        .prevent-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-top: 25px;
+        }
+
         /* Opciones de formato de papel */
         body.format-oficio .container {
             max-width: 100%;
@@ -298,6 +305,12 @@
             .signature-section { display: flex; }
             table.bordered th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .page-break { page-break-after: always; }
+            
+            /* Remueve encabezados de navegador */
+            @page {
+                size: auto;
+                margin: 1.2cm 1.2cm 1.2cm 1.2cm;
+            }
         }
     </style>
 </head>
@@ -400,7 +413,7 @@
                 <button class="btn btn-primary" onclick="agregarAsignatura()"><i class="fa-solid fa-plus"></i> Añadir Ramo</button>
             </div>
 
-            <!-- Tabla de Calificaciones Oficial -->
+            <!-- Tabla de Calificaciones Oficial Perfectamente Alineada -->
             <table class="bordered">
                 <thead>
                     <tr>
@@ -425,65 +438,68 @@
                 <tbody id="tabla-notas-cuerpo"></tbody>
             </table>
 
-            <!-- Tabla de Conceptos de Desarrollo Personal -->
-            <h3 style="margin-top: 30px; font-size: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-star"></i> Conceptos de Desarrollo Personal</h3>
-            <table class="bordered">
-                <thead>
-                    <tr>
-                        <th style="text-align: left; padding-left: 10px; width: 60%;">Conceptos / Indicadores</th>
-                        <th style="width: 20%;">I Semestre</th>
-                        <th style="width: 20%;">II Semestre</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-conceptos-cuerpo"></tbody>
-            </table>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
-                <!-- Leyenda de Conceptos -->
-                <table class="bordered" style="margin-top: 10px;">
+            <!-- Contenedor Unificado para Conceptos y Asistencia (Evita saltos de página huérfanos) -->
+            <div class="prevent-break">
+                <!-- Tabla de Conceptos de Desarrollo Personal -->
+                <h3 style="margin-top: 15px; font-size: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-star"></i> Conceptos de Desarrollo Personal</h3>
+                <table class="bordered">
                     <thead>
-                        <tr><th colspan="2" style="background: #f1f5f9; color: var(--primary-dark);">Escala de Calificación Conceptual</th></tr>
+                        <tr>
+                            <th style="text-align: left; padding-left: 10px; width: 60%;">Conceptos / Indicadores</th>
+                            <th style="width: 20%;">I Semestre</th>
+                            <th style="width: 20%;">II Semestre</th>
+                        </tr>
                     </thead>
-                    <tbody>
-                        <tr><td style="font-weight: bold; width: 30%;">S</td><td>Siempre</td></tr>
-                        <tr><td style="font-weight: bold;">F</td><td>Frecuentemente</td></tr>
-                        <tr><td style="font-weight: bold;">R/V</td><td>Rara Vez</td></tr>
-                        <tr><td style="font-weight: bold;">N</td><td>Nunca</td></tr>
-                        <tr><td style="font-weight: bold;">N/O</td><td>No Observado</td></tr>
-                    </tbody>
+                    <tbody id="tabla-conceptos-cuerpo"></tbody>
                 </table>
 
-                <!-- Bloque de Asistencia -->
-                <div>
-                    <h3 style="font-size: 15px; border-bottom: 2px solid var(--success); padding-bottom: 5px; color: var(--success);"><i class="fa-solid fa-calendar"></i> Registro de Asistencia</h3>
-                    <table class="bordered">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-top: 15px;">
+                    <!-- Leyenda de Conceptos -->
+                    <table class="bordered" style="margin-top: 0;">
                         <thead>
-                            <tr>
-                                <th>Días Trabajados</th>
-                                <th>Días Asistidos</th>
-                                <th style="background: var(--success-light); color: var(--success);">% Asistencia</th>
-                            </tr>
+                            <tr><th colspan="2" style="background: #f1f5f9; color: var(--primary-dark);">Escala de Calificación Conceptual</th></tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><input type="number" id="asist-trabajados" class="form-control" style="text-align: center; font-weight: bold;" oninput="calcularAsistencia()" value="100"></td>
-                                <td><input type="number" id="asist-asistidos" class="form-control" style="text-align: center; font-weight: bold;" oninput="calcularAsistencia()" value="95"></td>
-                                <td style="font-weight: bold; font-size: 14px; background: var(--success-light); color: var(--success);"><span id="lbl-porcentaje">95.0</span>%</td>
-                            </tr>
+                            <tr><td style="font-weight: bold; width: 30%;">S</td><td>Siempre</td></tr>
+                            <tr><td style="font-weight: bold;">F</td><td>Frecuentemente</td></tr>
+                            <tr><td style="font-weight: bold;">R/V</td><td>Rara Vez</td></tr>
+                            <tr><td style="font-weight: bold;">N</td><td>Nunca</td></tr>
+                            <tr><td style="font-weight: bold;">N/O</td><td>No Observado</td></tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
 
-            <!-- Sección de Firmas Oficiales para Impresión -->
-            <div class="signature-section">
-                <div>
-                    <div class="signature-line" id="lbl-firma-docente">CARLOS GODOY AEDO</div>
-                    <div>Profesor(a) Jefe</div>
+                    <!-- Bloque de Asistencia -->
+                    <div>
+                        <h3 style="font-size: 15px; border-bottom: 2px solid var(--success); padding-bottom: 5px; color: var(--success); margin-top: 0;"><i class="fa-solid fa-calendar"></i> Registro de Asistencia</h3>
+                        <table class="bordered">
+                            <thead>
+                                <tr>
+                                    <th>Días Trabajados</th>
+                                    <th>Días Asistidos</th>
+                                    <th style="background: var(--success-light); color: var(--success);">% Asistencia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="number" id="asist-trabajados" class="form-control" style="text-align: center; font-weight: bold;" oninput="calcularAsistencia()" value="100"></td>
+                                    <td><input type="number" id="asist-asistidos" class="form-control" style="text-align: center; font-weight: bold;" oninput="calcularAsistencia()" value="95"></td>
+                                    <td style="font-weight: bold; font-size: 14px; background: var(--success-light); color: var(--success);"><span id="lbl-porcentaje">95.0</span>%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div>
-                    <div class="signature-line" style="width: 220px;">Directora Escuela Quilacura</div>
-                    <div>Firma y Timbre</div>
+
+                <!-- Sección de Firmas Oficiales para Impresión -->
+                <div class="signature-section">
+                    <div>
+                        <div class="signature-line" id="lbl-firma-docente">CARLOS GODOY AEDO</div>
+                        <div>Profesor(a) Jefe</div>
+                    </div>
+                    <div>
+                        <div class="signature-line" style="width: 220px;">Directora Escuela Quilacura</div>
+                        <div>Firma y Timbre</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -590,7 +606,6 @@
         const input = document.getElementById('input-nuevo-estudiante');
         if(!input.value.trim()) return;
 
-        // Crear estudiante con las asignaturas y conceptos de referencia exactos de las imágenes
         db.estudiantes.push({
             nombre: input.value.trim().toUpperCase(),
             estado: 'Regular',
@@ -644,10 +659,7 @@
 
         let subHeadersHtml = '';
         for(let i=1; i<=colsS1; i++) subHeadersHtml += `<th style="width: 4%;">${i}</th>`;
-        subHeadersHtml += `<th style="background:#e2e8f0; width: 6%; color: var(--primary);">S1</th>`;
         for(let i=1; i<=colsS2; i++) subHeadersHtml += `<th style="width: 4%;">${i}</th>`;
-        subHeadersHtml += `<th style="background:#e2e8f0; width: 6%; color: var(--primary);">S2</th>`;
-        subHeadersHtml += `<th style="background:var(--success-light); color: var(--success); width: 8%;">Anual</th><th class="no-print" style="width: 5%;">Quitar</th>`;
         document.getElementById('subheaders-notas-fila').innerHTML = subHeadersHtml;
 
         // Renderizar Cuerpo de Tabla de Notas
@@ -661,19 +673,19 @@
             
             // Semestre 1 inputs
             for(let i=0; i<colsS1; i++) {
-                let nVal = ramo.notesS1 ? (ramo.notesS1[i] || '') : (ramo.notasS1[i] || '');
+                let nVal = ramo.notasS1 ? (ramo.notasS1[i] || '') : '';
                 rowHTML += `<td><input type="text" class="input-nota" value="${nVal}" onchange="editarNota(${rIdx}, 's1', ${i}, this.value)"></td>`;
             }
-            let promS1 = calcularSemestrePromedio(ramo.notasS1 || ramo.notesS1 || []);
-            rowHTML += `<td style="font-weight:bold; background:#f8fafc; font-size:12px;">${promS1}</td>`;
+            let promS1 = calcularSemestrePromedio(ramo.notasS1 || []);
+            rowHTML += `<td style="font-weight:bold; background:#e0f2fe; font-size:12px;">${promS1}</td>`;
 
             // Semestre 2 inputs
             for(let i=0; i<colsS2; i++) {
-                let nVal = ramo.notesS2 ? (ramo.notesS2[i] || '') : (ramo.notasS2[i] || '');
+                let nVal = ramo.notasS2 ? (ramo.notasS2[i] || '') : '';
                 rowHTML += `<td><input type="text" class="input-nota" value="${nVal}" onchange="editarNota(${rIdx}, 's2', ${i}, this.value)"></td>`;
             }
-            let promS2 = calcularSemestrePromedio(ramo.notasS2 || ramo.notesS2 || []);
-            rowHTML += `<td style="font-weight:bold; background:#f8fafc; font-size:12px;">${promS2}</td>`;
+            let promS2 = calcularSemestrePromedio(ramo.notasS2 || []);
+            rowHTML += `<td style="font-weight:bold; background:#e0f2fe; font-size:12px;">${promS2}</td>`;
 
             // Promedio Anual aproximado
             let promAnual = "-";
@@ -786,7 +798,6 @@
         }
     }
 
-    // Editar y guardar concepto de desarrollo personal en local storage
     function editarConcepto(cIdx, sem, val) {
         db.estudiantes[estudianteIdx].conceptos[cIdx][sem] = val;
         guardarPersistencia();
