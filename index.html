@@ -3,123 +3,887 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NotaFácil - Informe Oficial</title>
+    <title>NotaFácil - Informe de Notas Quilacura</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        :root { --primary: #1e3a8a; --bg: #f8fafc; --border: #cbd5e1; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; color: #334155; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .header-main { display: flex; gap: 20px; border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 20px; }
-        .logo-box { width: 120px; height: 120px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex-grow: 1; }
-        .input-field { padding: 8px; border: 1px solid var(--border); border-radius: 4px; }
-        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; background: var(--primary); color: white; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        th, td { border: 1px solid var(--border); padding: 8px; text-align: center; }
-        .note-input { width: 40px; text-align: center; }
-        .btn-del { background: #ef4444; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; border: none; }
+        :root {
+            --primary: #1e3a8a;       /* Azul Institucional Profundo */
+            --primary-light: #2563eb; /* Azul Interactivo */
+            --primary-dark: #0f172a;  /* Gris Pizarra Oscuro */
+            --success: #15803d;       /* Verde Académico */
+            --success-light: #f0fdf4; /* Fondo Verde Claro */
+            --danger: #dc2626;        /* Rojo de Alerta */
+            --bg: #f1f5f9;            /* Fondo Gris Claro */
+            --border: #94a3b8;        /* Gris de Bordes */
+            --text: #334155;          /* Texto Gris Carbono */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Contenedor Principal */
+        .container {
+            max-width: 1350px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Barra de herramientas superior */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .flex-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Estilo del Panel de Encabezado Oficial */
+        .official-header {
+            border: 2px solid var(--primary-dark);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            background: #fff;
+        }
+
+        .header-top-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr 120px;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .logo-box {
+            width: 110px;
+            height: 110px;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            font-size: 9px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .header-title-block {
+            text-align: center;
+        }
+
+        .header-title-block h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--primary);
+        }
+
+        .header-title-block h2 {
+            margin: 3px 0 0 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        /* inputs del sistema */
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fff;
+            width: 100%;
+            box-sizing: border-box;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Layout Principal */
+        .workspace {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+        }
+
+        /* Sidebar de Estudiantes */
+        .sidebar {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .student-list {
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .student-tab {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .student-tab:hover {
+            border-color: var(--success);
+            background: var(--success-light);
+        }
+
+        .student-tab.active {
+            background: #e0f2fe;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Ficha del Estudiante Activo */
+        .profile-card {
+            background: var(--success-light);
+            border: 1px solid var(--success);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .profile-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        /* Estilo de Tablas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            background: white;
+        }
+
+        table.bordered th, table.bordered td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        table.bordered th {
+            background: #f1f5f9;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .input-nota {
+            width: 35px;
+            height: 25px;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        /* Botonera */
+        .btn {
+            padding: 9px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-light); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #166534; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-sm { padding: 4px 8px; font-size: 11px; }
+
+        /* Estilo de Firmas al imprimir */
+        .signature-section {
+            display: none;
+            margin-top: 50px;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 200px;
+            border-top: 1px dashed #000;
+            padding-top: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Opciones de formato de papel */
+        body.format-oficio .container {
+            max-width: 100%;
+        }
+
+        /* Estilos de Impresión */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; margin: 0; color: #000; }
+            .container { box-shadow: none; padding: 0; max-width: 100% !important; }
+            .workspace { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .signature-section { display: flex; }
+            table.bordered th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .page-break { page-break-after: always; }
+        }
     </style>
 </head>
-<body>
+<body id="main-body">
 
 <div class="container">
-    <div class="header-main">
-        <div class="logo-box" onclick="document.getElementById('file-input').click()">
-            <img id="logo-preview" src="https://via.placeholder.com/100" style="width:100%; height:100%; object-fit:cover;">
-            <input type="file" id="file-input" style="display:none" onchange="previewLogo(event)">
+    <!-- Barra de Control -->
+    <div class="toolbar no-print">
+        <div class="flex-group">
+            <label style="font-weight: bold; font-size: 13px;"><i class="fa-solid fa-file"></i> Formato Papel:</label>
+            <select id="paper-format" class="form-control" style="width: auto;" onchange="cambiarFormato()">
+                <option value="carta">Carta (Letter)</option>
+                <option value="oficio">Oficio (Legal)</option>
+            </select>
         </div>
-        <div class="info-grid">
-            <input type="text" class="input-field" placeholder="Nombre Establecimiento">
-            <input type="text" class="input-field" placeholder="Nombre Profesor Jefe">
-            <input type="text" class="input-field" placeholder="Curso">
-            <input type="text" class="input-field" placeholder="Año Escolar">
-        </div>
-        <div style="text-align: right;">
-            <button class="btn" onclick="window.print()">Imprimir Estudiante</button><br><br>
-            <button class="btn" style="background:#059669;">Imprimir Todos</button>
+        <div class="flex-group">
+            <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Estudiante Activo</button>
+            <button class="btn btn-success" onclick="imprimirTodos()"><i class="fa-solid fa-print"></i> Imprimir Todos los Estudiantes</button>
         </div>
     </div>
 
-    <div style="display:grid; grid-template-columns: 300px 1fr; gap: 20px;">
-        <div class="sidebar">
-            <h3>Estudiantes</h3>
-            <input type="text" id="new-est" class="input-field" placeholder="Nombre completo...">
-            <button class="btn" onclick="addEst()">+ Registrar</button>
-            <div id="est-list" style="margin-top:10px;"></div>
+    <!-- Encabezado Oficial Escuela Quilacura -->
+    <div class="official-header">
+        <div class="header-top-grid">
+            <div class="logo-box" onclick="document.getElementById('file-input').click()">
+                <img id="logo-preview" src="https://via.placeholder.com/110?text=Subir+Logo">
+                <input type="file" id="file-input" style="display:none" accept="image/*" onchange="subirLogo(event)">
+                <div class="logo-text no-print">Modificar Logo</div>
+            </div>
+            <div class="header-title-block">
+                <h1 id="lbl-colegio-display">ESCUELA PARTICULAR Nº 8 "QUILACURA"</h1>
+                <h2 id="lbl-comuna-display">LAUTARO</h2>
+                <div style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase; color: var(--primary);">Informe de Notas de Rendimiento Escolar</div>
+            </div>
+            <div style="text-align: right; font-weight: bold; font-size: 13px;">
+                AÑO ESCOLAR<br>
+                <input type="text" id="meta-anio" class="form-control" style="text-align: center; font-weight: bold; font-size: 14px; border: 1px solid var(--border); margin-top: 5px;" value="2026" onchange="guardarMeta()">
+            </div>
         </div>
 
-        <div id="main-editor">
-            <h3>Ficha de Estudiante</h3>
-            <div style="background:#f1f5f9; padding:15px; border-radius:8px;">
-                <p><strong>Estudiante:</strong> <span id="view-name">-</span> | <strong>Estado:</strong> <select><option>Regular</option><option>Irregular</option></select></p>
-                <button class="btn-del" onclick="deleteEst()">Quitar Estudiante</button>
+        <div class="meta-grid">
+            <div>
+                <table style="margin: 0; width: 100%;">
+                    <tr>
+                        <td style="border: 1px solid var(--border); font-weight: bold; width: 30%; text-align: left; padding: 5px; font-size: 11px; background: #f8fafc;">ESTABLECIMIENTO:</td>
+                        <td style="border: 1px solid var(--border); padding: 0;"><input type="text" id="meta-establecimiento" class="form-control" style="border: none; font-size: 11px;" value="ESCUELA PARTICULAR Nº 8 QUILACURA" onchange="guardarMeta()"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid var(--border); font-weight: bold; text-align: left; padding: 5px; font-size: 11px; background: #f8fafc;">COMUNA:</td>
+                        <td style="border: 1px solid var(--border); padding: 0;"><input type="text" id="meta-comuna" class="form-control" style="border: none; font-size: 11px;" value="LAUTARO" onchange="guardarMeta()"></td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <table style="margin: 0; width: 100%;">
+                    <tr>
+                        <td style="border: 1px solid var(--border); font-weight: bold; width: 30%; text-align: left; padding: 5px; font-size: 11px; background: #f8fafc;">PROFESOR(A) JEFE:</td>
+                        <td style="border: 1px solid var(--border); padding: 0;"><input type="text" id="meta-profesor" class="form-control" style="border: none; font-size: 11px;" value="CARLOS GODOY AEDO" onchange="guardarMeta()"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid var(--border); font-weight: bold; text-align: left; padding: 5px; font-size: 11px; background: #f8fafc;">CURSO ACTUAL:</td>
+                        <td style="border: 1px solid var(--border); padding: 0;"><input type="text" id="meta-curso" class="form-control" style="border: none; font-size: 11px;" value="7° AÑO" onchange="guardarMeta()"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout de Contenidos -->
+    <div class="workspace">
+        <!-- Barra Lateral Izquierda (Registro Estudiantes) -->
+        <div class="sidebar no-print">
+            <h3><i class="fa-solid fa-users" style="color: var(--primary);"></i> Estudiantes</h3>
+            <div style="display: flex; gap: 5px; margin-bottom: 12px;">
+                <input type="text" id="input-nuevo-estudiante" class="form-control" placeholder="Nombre completo...">
+                <button class="btn btn-primary" onclick="registrarEstudiante()" style="padding: 8px 12px;">+</button>
+            </div>
+            <div class="student-list" id="lista-estudiantes"></div>
+        </div>
+
+        <!-- Área de Trabajo de Notas y Conceptos -->
+        <div id="panel-calificaciones">
+            <!-- Ficha del Estudiante Activo -->
+            <div class="profile-card">
+                <div>
+                    <span class="profile-title">Estudiante: <span id="nombre-estudiante-activo">Seleccione un estudiante</span></span>
+                    <span style="margin-left: 20px; font-size: 13px; color: var(--text);"><strong>Estado:</strong> 
+                        <select id="estado-estudiante-activo" class="form-control" style="display: inline-block; width: auto; padding: 3px 6px;" onchange="cambiarEstadoEstudiante()">
+                            <option value="Regular">Regular</option>
+                            <option value="Irregular">Irregular</option>
+                        </select>
+                    </span>
+                </div>
+                <button class="btn btn-danger btn-sm no-print" onclick="quitarEstudianteActivo()"><i class="fa-solid fa-trash"></i> Eliminar Estudiante</button>
             </div>
 
-            <table id="notas-table">
+            <!-- Panel para Agregar Asignaturas -->
+            <div class="no-print" style="display: flex; gap: 10px; margin-bottom: 20px; background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px; align-items: center;">
+                <input type="text" id="input-nueva-asignatura" class="form-control" placeholder="Agregar nueva asignatura...">
+                <button class="btn btn-primary" onclick="agregarAsignatura()"><i class="fa-solid fa-plus"></i> Añadir Ramo</button>
+            </div>
+
+            <!-- Tabla de Calificaciones Oficial -->
+            <table class="bordered">
                 <thead>
                     <tr>
-                        <th>Asignatura</th>
-                        <th colspan="4">Primer Semestre <button onclick="modCols('s1', 1)">+</button><button onclick="modCols('s1', -1)">-</button></th>
-                        <th>S1</th>
-                        <th colspan="4">Segundo Semestre <button onclick="modCols('s2', 1)">+</button><button onclick="modCols('s2', -1)">-</button></th>
-                        <th>S2</th>
-                        <th>Promedio</th>
-                        <th>Acción</th>
+                        <th rowspan="2" style="width: 25%;">Asignaturas</th>
+                        <th id="header-s1" colspan="4" style="background: #f1f5f9;">Primer Semestre 
+                            <button class="btn btn-sm btn-primary no-print" onclick="ajustarColumnas('s1', 1)">+</button>
+                            <button class="btn btn-sm btn-danger no-print" onclick="ajustarColumnas('s1', -1)">-</button>
+                        </th>
+                        <th rowspan="2" style="background: #e0f2fe; width: 6%; color: var(--primary);">S1</th>
+                        <th id="header-s2" colspan="4" style="background: #f1f5f9;">Segundo Semestre 
+                            <button class="btn btn-sm btn-primary no-print" onclick="ajustarColumnas('s2', 1)">+</button>
+                            <button class="btn btn-sm btn-danger no-print" onclick="ajustarColumnas('s2', -1)">-</button>
+                        </th>
+                        <th rowspan="2" style="background: #e0f2fe; width: 6%; color: var(--primary);">S2</th>
+                        <th rowspan="2" style="background: var(--success-light); color: var(--success); width: 8%;">Prom. Anual</th>
+                        <th rowspan="2" class="no-print" style="width: 5%;">Quitar</th>
+                    </tr>
+                    <tr id="subheaders-notas-fila">
+                        <!-- Generado dinámicamente -->
                     </tr>
                 </thead>
-                <tbody id="rows-body"></tbody>
-            </table>
-            <button class="btn" onclick="addRamo()">+ Añadir Asignatura</button>
-
-            <h3>Conceptos de Desarrollo Personal</h3>
-            <table id="conceptos-table">
-                <thead><tr><th>Criterio</th><th>S1</th><th>S2</th></tr></thead>
-                <tbody id="conceptos-body"></tbody>
+                <tbody id="tabla-notas-cuerpo"></tbody>
             </table>
 
-            <h3>Asistencia</h3>
-            <div class="info-grid">
-                <input type="number" id="dias-t" placeholder="Días Trabajados" oninput="calcAsistencia()">
-                <input type="number" id="dias-a" placeholder="Días Asistidos" oninput="calcAsistencia()">
-                <p>Porcentaje: <span id="porc-asist">0</span>%</p>
+            <!-- Tabla de Conceptos de Desarrollo Personal -->
+            <h3 style="margin-top: 30px; font-size: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-star"></i> Conceptos de Desarrollo Personal</h3>
+            <table class="bordered">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; padding-left: 10px; width: 60%;">Conceptos / Indicadores</th>
+                        <th style="width: 20%;">I Semestre</th>
+                        <th style="width: 20%;">II Semestre</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-conceptos-cuerpo"></tbody>
+            </table>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+                <!-- Leyenda de Conceptos -->
+                <table class="bordered" style="margin-top: 10px;">
+                    <thead>
+                        <tr><th colspan="2" style="background: #f1f5f9; color: var(--primary-dark);">Escala de Calificación Conceptual</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="font-weight: bold; width: 30%;">S</td><td>Siempre</td></tr>
+                        <tr><td style="font-weight: bold;">F</td><td>Frecuentemente</td></tr>
+                        <tr><td style="font-weight: bold;">R/V</td><td>Rara Vez</td></tr>
+                        <tr><td style="font-weight: bold;">N</td><td>Nunca</td></tr>
+                        <tr><td style="font-weight: bold;">N/O</td><td>No Observado</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Bloque de Asistencia -->
+                <div>
+                    <h3 style="font-size: 15px; border-bottom: 2px solid var(--success); padding-bottom: 5px; color: var(--success);"><i class="fa-solid fa-calendar"></i> Registro de Asistencia</h3>
+                    <table class="bordered">
+                        <thead>
+                            <tr>
+                                <th>Días Trabajados</th>
+                                <th>Días Asistidos</th>
+                                <th style="background: var(--success-light); color: var(--success);">% Asistencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="number" id="asist-trabajados" class="form-control" style="text-align: center; font-weight: bold;" oninput="calcularAsistencia()" value="100"></td>
+                                <td><input type="number" id="asist-asistidos" class="form-control" style="text-align: center; font-weight: bold;" oninput="calcularAsistencia()" value="95"></td>
+                                <td style="font-weight: bold; font-size: 14px; background: var(--success-light); color: var(--success);"><span id="lbl-porcentaje">95.0</span>%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección de Firmas Oficiales para Impresión -->
+            <div class="signature-section">
+                <div>
+                    <div class="signature-line" id="lbl-firma-docente">CARLOS GODOY AEDO</div>
+                    <div>Profesor(a) Jefe</div>
+                </div>
+                <div>
+                    <div class="signature-line" style="width: 220px;">Directora Escuela Quilacura</div>
+                    <div>Firma y Timbre</div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let ramos = ['Lengua y Literatura', 'Matemática', 'Ciencias Naturales'];
-    let conceptos = ['Es capaz de expresar opiniones', 'Acepta opiniones distintas', 'Asume deberes', 'Relaciones de amistad', 'Cuida su entorno', 'Presentación personal', 'Valora cultura mapuche'];
-    let cols = {s1: 4, s2: 4};
+    // Inicialización de la base de datos oficial
+    let db = JSON.parse(localStorage.getItem('notafacil_v3_db')) || {
+        estudiantes: [],
+        meta: {
+            establecimiento: "ESCUELA PARTICULAR Nº 8 QUILACURA",
+            comuna: "LAUTARO",
+            profesor: "CARLOS GODOY AEDO",
+            curso: "7° AÑO",
+            anio: "2026",
+            formato: "carta"
+        }
+    };
 
-    function addEst() { /* Lógica para agregar estudiante */ }
-    function addRamo() { ramos.push('Nueva Asignatura'); render(); }
-    function modCols(s, delta) { if(cols[s] + delta > 0) cols[s] += delta; render(); }
-    
-    function calcAsistencia() {
-        let t = document.getElementById('dias-t').value;
-        let a = document.getElementById('dias-a').value;
-        if(t > 0) document.getElementById('porc-asist').innerText = ((a/t)*100).toFixed(1);
+    let estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
+    let colsS1 = 4;
+    let colsS2 = 4;
+
+    const listaConceptosDefecto = [
+        "1.- Es capaz de expresar sus opiniones y sentimiento.",
+        "2.- Acepta la opinión de sus compañeros aunque sea diferente a la propia.",
+        "3.- Asume responsablemente sus deberes, cumpliendo con las exigencias.",
+        "4.- Establece relaciones de amistad y respeto con todos sus pares y profesores.",
+        "5.- Cuida su entorno.",
+        "6.- Se preocupa de su presentación personal e higiene.",
+        "7.- Valora y respeta la cultura mapuche."
+    ];
+
+    const opcionesCalificacion = ["-", "S", "F", "R/V", "N", "N/O"];
+
+    // Listado Oficial de Asignaturas de la Escuela Particular N° 8 Quilacura
+    const asignaturasOficialesMineduc = [
+        { nombre: 'LENGUA Y LITERATURA', notasS1: [], notasS2: [] },
+        { nombre: 'IDIOMA EXTRANJERO: INGLÉS', notasS1: [], notasS2: [] },
+        { nombre: 'MATEMÁTICA', notasS1: [], notasS2: [] },
+        { nombre: 'CIENCIAS NATURALES', notasS1: [], notasS2: [] },
+        { nombre: 'HISTORIA, GEOGRAFÍA Y CS.', notasS1: [], notasS2: [] },
+        { nombre: 'TECNOLOGÍA', notasS1: [], notasS2: [] },
+        { nombre: 'MÚSICA', notasS1: [], notasS2: [] },
+        { nombre: 'ARTES VISUALES', notasS1: [], notasS2: [] },
+        { nombre: 'EDUCACIÓN FÍSICA Y SALUD', notasS1: [], notasS2: [] },
+        { nombre: 'LENGUA INDÍGENA', notasS1: [], notasS2: [] }
+    ];
+
+    function iniciarApp() {
+        // Cargar Metadatos
+        document.getElementById('meta-establecimiento').value = db.meta.establecimiento;
+        document.getElementById('meta-comuna').value = db.meta.comuna;
+        document.getElementById('meta-profesor').value = db.meta.profesor;
+        document.getElementById('meta-curso').value = db.meta.curso;
+        document.getElementById('meta-anio').value = db.meta.anio;
+        document.getElementById('paper-format').value = db.meta.formato || 'carta';
+
+        // Actualizar vistas dinámicas de texto
+        document.getElementById('lbl-colegio-display').innerText = db.meta.establecimiento.toUpperCase();
+        document.getElementById('lbl-comuna-display').innerText = db.meta.comuna.toUpperCase();
+        document.getElementById('lbl-firma-docente').innerText = db.meta.profesor.toUpperCase();
+
+        const logo = localStorage.getItem('notafacil_v3_logo');
+        if(logo) document.getElementById('logo-preview').src = logo;
+
+        cambiarFormato();
+        renderEstudiantes();
+        renderEvaluacion();
     }
 
-    function render() {
-        const body = document.getElementById('rows-body');
-        body.innerHTML = ramos.map((r, i) => `<tr>
-            <td>${r}</td>
-            ${Array(cols.s1).fill('<td><input class="note-input" type="number"></td>').join('')}
-            <td>-</td>
-            ${Array(cols.s2).fill('<td><input class="note-input" type="number"></td>').join('')}
-            <td>-</td>
-            <td>-</td>
-            <td><button class="btn-del" onclick="ramos.splice(${i},1); render()">×</button></td>
-        </tr>`).join('');
+    function guardarMeta() {
+        db.meta.establecimiento = document.getElementById('meta-establecimiento').value;
+        db.meta.comuna = document.getElementById('meta-comuna').value;
+        db.meta.profesor = document.getElementById('meta-profesor').value;
+        db.meta.curso = document.getElementById('meta-curso').value;
+        db.meta.anio = document.getElementById('meta-anio').value;
+        db.meta.formato = document.getElementById('paper-format').value;
+
+        document.getElementById('lbl-colegio-display').innerText = db.meta.establecimiento.toUpperCase();
+        document.getElementById('lbl-comuna-display').innerText = db.meta.comuna.toUpperCase();
+        document.getElementById('lbl-firma-docente').innerText = db.meta.profesor.toUpperCase();
+
+        guardarPersistencia();
     }
 
-    // Carga inicial
-    render();
-    document.getElementById('conceptos-body').innerHTML = conceptos.map(c => `<tr><td>${c}</td><td><select><option>S</option><option>F</option><option>N</option></select></td><td><select><option>S</option><option>F</option><option>N</option></select></td></tr>`).join('');
-    
-    function previewLogo(e) { const reader = new FileReader(); reader.onload = (ev) => document.getElementById('logo-preview').src = ev.target.result; reader.readAsDataURL(e.target.files[0]); }
+    function guardarPersistencia() {
+        localStorage.setItem('notafacil_v3_db', JSON.stringify(db));
+    }
+
+    function cambiarFormato() {
+        const fmt = document.getElementById('paper-format').value;
+        const mainBody = document.getElementById('main-body');
+        if(fmt === 'oficio') {
+            mainBody.classList.add('format-oficio');
+        } else {
+            mainBody.classList.remove('format-oficio');
+        }
+        guardarMeta();
+    }
+
+    function registrarEstudiante() {
+        const input = document.getElementById('input-nuevo-estudiante');
+        if(!input.value.trim()) return;
+
+        // Crear estudiante con las asignaturas y conceptos de referencia exactos de las imágenes
+        db.estudiantes.push({
+            nombre: input.value.trim().toUpperCase(),
+            estado: 'Regular',
+            asignaturas: JSON.parse(JSON.stringify(asignaturasOficialesMineduc)),
+            conceptos: listaConceptosDefecto.map(c => ({ descriptor: c, s1: '-', s2: '-' })),
+            diasTrabajados: 100,
+            diasAsistidos: 95
+        });
+
+        estudianteIdx = db.estudiantes.length - 1;
+        input.value = '';
+        guardarPersistencia();
+        renderEstudiantes();
+        renderEvaluacion();
+    }
+
+    function renderEstudiantes() {
+        const listDiv = document.getElementById('lista-estudiantes');
+        listDiv.innerHTML = '';
+
+        db.estudiantes.forEach((est, idx) => {
+            const tab = document.createElement('div');
+            tab.className = `student-tab ${idx === estudianteIdx ? 'active' : ''}`;
+            tab.innerHTML = `<span><i class="fa-solid fa-user-graduate"></i> ${est.nombre}</span>`;
+            tab.onclick = () => {
+                estudianteIdx = idx;
+                renderEstudiantes();
+                renderEvaluacion();
+            };
+            listDiv.appendChild(tab);
+        });
+    }
+
+    function renderEvaluacion() {
+        if(estudianteIdx === -1) {
+            document.getElementById('nombre-estudiante-activo').innerText = "Seleccione un estudiante";
+            document.getElementById('tabla-notas-cuerpo').innerHTML = '';
+            document.getElementById('tabla-conceptos-cuerpo').innerHTML = '';
+            return;
+        }
+
+        const est = db.estudiantes[estudianteIdx];
+        document.getElementById('nombre-estudiante-activo').innerText = est.nombre;
+        document.getElementById('estado-estudiante-activo').value = est.estado;
+        document.getElementById('asist-trabajados').value = est.diasTrabajados || 100;
+        document.getElementById('asist-asistidos').value = est.diasAsistidos || 95;
+
+        // Renderizar Encabezados Dinámicos de Notas
+        document.getElementById('header-s1').colSpan = colsS1;
+        document.getElementById('header-s2').colSpan = colsS2;
+
+        let subHeadersHtml = '';
+        for(let i=1; i<=colsS1; i++) subHeadersHtml += `<th style="width: 4%;">${i}</th>`;
+        subHeadersHtml += `<th style="background:#e2e8f0; width: 6%; color: var(--primary);">S1</th>`;
+        for(let i=1; i<=colsS2; i++) subHeadersHtml += `<th style="width: 4%;">${i}</th>`;
+        subHeadersHtml += `<th style="background:#e2e8f0; width: 6%; color: var(--primary);">S2</th>`;
+        subHeadersHtml += `<th style="background:var(--success-light); color: var(--success); width: 8%;">Anual</th><th class="no-print" style="width: 5%;">Quitar</th>`;
+        document.getElementById('subheaders-notas-fila').innerHTML = subHeadersHtml;
+
+        // Renderizar Cuerpo de Tabla de Notas
+        const tbodyNotas = document.getElementById('tabla-notas-cuerpo');
+        tbodyNotas.innerHTML = '';
+
+        est.asignaturas.forEach((ramo, rIdx) => {
+            const tr = document.createElement('tr');
+            
+            let rowHTML = `<td style="text-align:left; font-weight:bold; font-size:11px; padding-left:10px;">${ramo.nombre}</td>`;
+            
+            // Semestre 1 inputs
+            for(let i=0; i<colsS1; i++) {
+                let nVal = ramo.notesS1 ? (ramo.notesS1[i] || '') : (ramo.notasS1[i] || '');
+                rowHTML += `<td><input type="text" class="input-nota" value="${nVal}" onchange="editarNota(${rIdx}, 's1', ${i}, this.value)"></td>`;
+            }
+            let promS1 = calcularSemestrePromedio(ramo.notasS1 || ramo.notesS1 || []);
+            rowHTML += `<td style="font-weight:bold; background:#f8fafc; font-size:12px;">${promS1}</td>`;
+
+            // Semestre 2 inputs
+            for(let i=0; i<colsS2; i++) {
+                let nVal = ramo.notesS2 ? (ramo.notesS2[i] || '') : (ramo.notasS2[i] || '');
+                rowHTML += `<td><input type="text" class="input-nota" value="${nVal}" onchange="editarNota(${rIdx}, 's2', ${i}, this.value)"></td>`;
+            }
+            let promS2 = calcularSemestrePromedio(ramo.notasS2 || ramo.notesS2 || []);
+            rowHTML += `<td style="font-weight:bold; background:#f8fafc; font-size:12px;">${promS2}</td>`;
+
+            // Promedio Anual aproximado
+            let promAnual = "-";
+            if(promS1 !== "-" && promS2 !== "-") {
+                let p1 = parseFloat(promS1.replace(',','.'));
+                let p2 = parseFloat(promS2.replace(',','.'));
+                promAnual = aproximarNota((p1 + p2) / 2).toFixed(1).replace('.',',');
+            }
+            rowHTML += `<td style="font-weight:bold; background:var(--success-light); color:var(--success); font-size:13px;">${promAnual}</td>`;
+            rowHTML += `<td class="no-print"><button class="btn btn-danger btn-sm" onclick="eliminarAsignatura(${rIdx})" style="padding:2px 6px;">×</button></td>`;
+            
+            tr.innerHTML = rowHTML;
+            tbodyNotas.appendChild(tr);
+        });
+
+        // Renderizar Conceptos
+        const tbodyConceptos = document.getElementById('tabla-conceptos-cuerpo');
+        tbodyConceptos.innerHTML = '';
+
+        if(!est.conceptos) est.conceptos = listaConceptosDefecto.map(c => ({ descriptor: c, s1: '-', s2: '-' }));
+
+        est.conceptos.forEach((c, cIdx) => {
+            const tr = document.createElement('tr');
+            
+            let s1Select = `<select class="form-control" style="width:70px; padding:2px; font-weight:bold; text-align:center; border-color: var(--border);" onchange="editarConcepto(${cIdx}, 's1', this.value)">`;
+            s1Select += opcionesCalificacion.map(opt => `<option value="${opt}" ${c.s1 === opt ? 'selected' : ''}>${opt}</option>`).join('');
+            s1Select += `</select>`;
+
+            let s2Select = `<select class="form-control" style="width:70px; padding:2px; font-weight:bold; text-align:center; border-color: var(--border);" onchange="editarConcepto(${cIdx}, 's2', this.value)">`;
+            s2Select += opcionesCalificacion.map(opt => `<option value="${opt}" ${c.s2 === opt ? 'selected' : ''}>${opt}</option>`).join('');
+            s2Select += `</select>`;
+
+            tr.innerHTML = `
+                <td style="text-align:left; padding-left:10px; font-size:11px;">${c.descriptor}</td>
+                <td style="display:flex; justify-content:center; border:none; padding:4px;">${s1Select}</td>
+                <td>${s2Select}</td>
+            `;
+            tbodyConceptos.appendChild(tr);
+        });
+
+        calcularAsistencia();
+    }
+
+    function editarNota(rIdx, semestre, nIdx, val) {
+        let notaFormateada = val.replace(',', '.');
+        let notaNum = parseFloat(notaFormateada);
+        
+        if(isNaN(notaNum) || notaNum < 1.0 || notaNum > 7.0) {
+            notaNum = '';
+        }
+
+        const est = db.estudiantes[estudianteIdx];
+        if(!est.asignaturas[rIdx].notasS1) est.asignaturas[rIdx].notasS1 = [];
+        if(!est.asignaturas[rIdx].notasS2) est.asignaturas[rIdx].notasS2 = [];
+
+        if(semestre === 's1') {
+            est.asignaturas[rIdx].notasS1[nIdx] = notaNum;
+        } else {
+            est.asignaturas[rIdx].notasS2[nIdx] = notaNum;
+        }
+
+        guardarPersistencia();
+        renderEvaluacion();
+    }
+
+    function calcularSemestrePromedio(notasArray) {
+        let validas = notasArray.filter(n => n !== null && n !== undefined && n !== '');
+        if(validas.length === 0) return "-";
+        let suma = validas.reduce((a, b) => a + b, 0);
+        let promedio = suma / validas.length;
+        return aproximarNota(promedio).toFixed(1).replace('.',',');
+    }
+
+    function aproximarNota(nota) {
+        let entero = Math.floor(nota);
+        let decimal = nota - entero;
+        if(decimal >= 0.5) {
+            return entero + 1.0;
+        } else {
+            return entero + 0.0;
+        }
+    }
+
+    function ajustarColumnas(sem, delta) {
+        if(sem === 's1' && colsS1 + delta >= 1) colsS1 += delta;
+        if(sem === 's2' && colsS2 + delta >= 1) colsS2 += delta;
+        renderEvaluacion();
+    }
+
+    function agregarAsignatura() {
+        const input = document.getElementById('input-nueva-asignatura');
+        if(!input.value.trim() || estudianteIdx === -1) return;
+
+        db.estudiantes[estudianteIdx].asignaturas.push({
+            nombre: input.value.trim().toUpperCase(),
+            notasS1: [],
+            notasS2: []
+        });
+
+        input.value = '';
+        guardarPersistencia();
+        renderEvaluacion();
+    }
+
+    function eliminarAsignatura(rIdx) {
+        if(confirm("¿Seguro que deseas eliminar esta asignatura?")) {
+            db.estudiantes[estudianteIdx].asignaturas.splice(rIdx, 1);
+            guardarPersistencia();
+            renderEvaluacion();
+        }
+    }
+
+    // Editar y guardar concepto de desarrollo personal en local storage
+    function editarConcepto(cIdx, sem, val) {
+        db.estudiantes[estudianteIdx].conceptos[cIdx][sem] = val;
+        guardarPersistencia();
+    }
+
+    function calcularAsistencia() {
+        if(estudianteIdx === -1) return;
+        const est = db.estudiantes[estudianteIdx];
+        const t = parseFloat(document.getElementById('asist-trabajados').value) || 0;
+        const a = parseFloat(document.getElementById('asist-asistidos').value) || 0;
+
+        est.diasTrabajados = t;
+        est.diasAsistidos = a;
+        guardarPersistencia();
+
+        if(t > 0) {
+            document.getElementById('lbl-porcentaje').innerText = ((a / t) * 100).toFixed(1);
+        } else {
+            document.getElementById('lbl-porcentaje').innerText = "0.0";
+        }
+    }
+
+    function cambiarEstadoEstudiante() {
+        if(estudianteIdx === -1) return;
+        db.estudiantes[estudianteIdx].estado = document.getElementById('estado-estudiante-activo').value;
+        guardarPersistencia();
+    }
+
+    function quitarEstudianteActivo() {
+        if(estudianteIdx === -1) return;
+        if(confirm("¿Deseas remover definitivamente a este estudiante?")) {
+            db.estudiantes.splice(estudianteIdx, 1);
+            estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
+            guardarPersistencia();
+            renderEstudiantes();
+            renderEvaluacion();
+        }
+    }
+
+    function subirLogo(e) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            document.getElementById('logo-preview').src = ev.target.result;
+            localStorage.setItem('notafacil_v3_logo', ev.target.result);
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+
+    function imprimirTodos() {
+        if(db.estudiantes.length === 0) {
+            alert("No hay estudiantes registrados.");
+            return;
+        }
+
+        const originalIndex = estudianteIdx;
+        const printContainer = document.createElement('div');
+        printContainer.style.position = 'absolute';
+        printContainer.style.left = '-9999px';
+        printContainer.style.top = '-9999px';
+        document.body.appendChild(printContainer);
+
+        db.estudiantes.forEach((estudiante, idx) => {
+            estudianteIdx = idx;
+            renderEvaluacion();
+
+            const clone = document.querySelector('.container').cloneNode(true);
+            clone.querySelectorAll('.no-print').forEach(el => el.remove());
+            
+            clone.querySelector('#nombre-estudiante-activo').innerText = estudiante.nombre;
+            clone.querySelector('#asist-trabajados').value = estudiante.diasTrabajados;
+            clone.querySelector('#asist-asistidos').value = estudiante.diasAsistidos;
+            
+            const originalSelects = document.querySelectorAll('#tabla-conceptos-cuerpo select');
+            const cloneSelects = clone.querySelectorAll('#tabla-conceptos-cuerpo select');
+            cloneSelects.forEach((sel, sIdx) => {
+                sel.value = originalSelects[sIdx].value;
+                sel.disabled = true;
+            });
+
+            if(idx < db.estudiantes.length - 1) {
+                clone.classList.add('page-break');
+            }
+            printContainer.appendChild(clone);
+        });
+
+        estudianteIdx = originalIndex;
+        renderEvaluacion();
+
+        const originalBody = document.body.innerHTML;
+        document.body.innerHTML = printContainer.innerHTML;
+        window.print();
+        document.body.innerHTML = originalBody;
+        
+        window.location.reload();
+    }
+
+    iniciarApp();
 </script>
 </body>
 </html>
