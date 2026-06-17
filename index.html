@@ -3,93 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NotaFácil - Gestión Integral</title>
+    <title>Sistema de Gestión Académica</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; background: #e2e8f0; padding: 15px; border-radius: 8px; flex-wrap: wrap; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 12px; text-align: center; }
-        button, .nav-btn { padding: 10px 15px; cursor: pointer; border: none; border-radius: 4px; color: white; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-add { background: #555; }
-        .btn-sync { background: #3182ce; }
-        .btn-excel { background: #2f855a; }
-        .btn-plan { background: #805ad5; }
-        input { width: 80px; padding: 5px; text-align: center; border: 1px solid #ddd; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header-section { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .logo-box { width: 120px; height: 120px; border: 2px dashed #bbb; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; overflow: hidden; }
+        .header-inputs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; flex-grow: 1; }
+        input[type="text"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 30px; }
+        .estudiantes-box { background: #f9f9f9; padding: 15px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #f8f9fa; }
+        .input-nota { width: 50px; text-align: center; border: 1px solid #ddd; padding: 5px; }
+        .btn { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; background: #4a90e2; color: white; transition: 0.3s; }
+        .btn:hover { background: #357abd; }
+        .btn-del { background: #e53e3e; }
+        .no-print { margin-bottom: 20px; }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>NotaFácil - Libreta de Notas</h1>
-        <div class="toolbar">
-            <button class="btn-add" onclick="agregarAlumno()"><i class="fa-solid fa-plus"></i> Agregar Estudiante</button>
-            <button class="btn-sync" onclick="guardarEnNube()"><i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar Nube</button>
-            <button class="btn-excel" onclick="exportarExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
-            <a href="planificador.html" class="nav-btn btn-plan"><i class="fa-solid fa-calendar-days"></i> Ir a Planificador</a>
+        <div class="header-section">
+            <div class="logo-box" onclick="document.getElementById('file-input').click()">
+                <img id="logo-preview" src="https://via.placeholder.com/120" style="width:100%; height:100%; object-fit:cover;">
+                <input type="file" id="file-input" style="display:none" onchange="previewLogo(event)">
+            </div>
+            <div class="header-inputs">
+                <input type="text" placeholder="Nombre del Establecimiento">
+                <input type="text" placeholder="Nombre Docente Jefe">
+                <input type="text" placeholder="Curso a trabajar">
+                <input type="text" placeholder="Año Escolar">
+            </div>
         </div>
-        <table>
-            <thead><tr><th>Nombre</th><th>Nota</th></tr></thead>
-            <tbody id="tabla-body"></tbody>
-        </table>
+
+        <div class="no-print" style="margin-bottom: 20px;">
+            <button class="btn" onclick="window.print()">🖨️ Imprimir Todo</button>
+            <button class="btn" style="background:#2f855a" onclick="exportarExcel()">📥 Exportar a Excel</button>
+        </div>
+
+        <div class="main-layout">
+            <div class="estudiantes-box">
+                <h3>Estudiantes</h3>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="nuevo-est" placeholder="Nombre...">
+                    <button class="btn" onclick="agregarEstudiante()">+</button>
+                </div>
+                <div id="lista-estudiantes" style="margin-top:15px;"></div>
+            </div>
+
+            <div>
+                <h3>Planificación Académica</h3>
+                <input type="text" id="nuevo-ramo" placeholder="Asignatura...">
+                <button class="btn" onclick="agregarRamo()">+ Añadir Asignatura</button>
+                <table id="tabla-notas">
+                    <thead id="tabla-head"></thead>
+                    <tbody id="cuerpo-ramos"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-        import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'notafacil-cloud';
-
-        // Lógica de exportar Excel
-        window.exportarExcel = () => {
-            let csv = "Nombre,Nota\n";
-            window.alumnos.forEach(a => { csv += `${a.nombre},${a.nota}\n`; });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = window.URL.createObjectURL(blob);
-            a.download = "Reporte_Notas.csv";
-            a.click();
-        };
-
-        // Lógica de Nube
-        window.guardarEnNube = async () => {
-            const user = auth.currentUser || await signInAnonymously(auth).then(res => res.user);
-            await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'datos_app'), { alumnos: window.alumnos });
-            alert("✅ ¡Datos guardados en la nube!");
-        };
-    </script>
-
     <script>
-        // Cargar datos originales
-        window.alumnos = JSON.parse(localStorage.getItem('alumnos')) || [{nombre: "Ejemplo", nota: 5.0}];
+        let est = JSON.parse(localStorage.getItem('est')) || [];
+        let ramos = JSON.parse(localStorage.getItem('ramos')) || [];
+        let colS1 = 2, colS2 = 2;
 
-        function renderizarTabla() {
-            const tbody = document.getElementById('tabla-body');
-            tbody.innerHTML = '';
-            window.alumnos.forEach((a, i) => {
-                tbody.innerHTML += `<tr>
-                    <td><input type="text" value="${a.nombre}" onchange="alumnos[${i}].nombre=this.value; guardar()"></td>
-                    <td><input type="number" value="${a.nota}" onchange="alumnos[${i}].nota=this.value; guardar()"></td>
-                </tr>`;
+        function render() {
+            document.getElementById('lista-estudiantes').innerHTML = est.map((e,i) => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    ${e} 
+                    <div>
+                        <button class="btn" onclick="window.print()">🖨️</button>
+                        <button class="btn btn-del" onclick="est.splice(${i},1); save()">🗑️</button>
+                    </div>
+                </div>`).join('');
+
+            let head = `<tr><th>Asignatura</th>
+                <th colspan="${colS1+1}">S1 <button class="btn" onclick="colS1++; render()">+</button><button class="btn btn-del" onclick="if(colS1>1)colS1--; render()">-</button></th>
+                <th colspan="${colS2+1}">S2 <button class="btn" onclick="colS2++; render()">+</button><button class="btn btn-del" onclick="if(colS2>1)colS2--; render()">-</button></th>
+                <th>Prom.</th><th>Acción</th></tr>`;
+            document.getElementById('tabla-head').innerHTML = head;
+
+            document.getElementById('cuerpo-ramos').innerHTML = ramos.map((r,i) => `<tr>
+                <td>${r}</td>
+                ${Array(colS1).fill(0).map(()=>`<td><input class="input-nota" type="number" oninput="calc()"></td>`).join('')}
+                <td>-</td>
+                ${Array(colS2).fill(0).map(()=>`<td><input class="input-nota" type="number" oninput="calc()"></td>`).join('')}
+                <td>-</td>
+                <td class="prom">0.0</td>
+                <td><button class="btn btn-del" onclick="ramos.splice(${i},1); save()">🗑️</button></td>
+            </tr>`).join('');
+        }
+
+        function calc() {
+            document.querySelectorAll('#cuerpo-ramos tr').forEach(tr => {
+                let inputs = Array.from(tr.querySelectorAll('.input-nota'));
+                let s1 = inputs.slice(0, colS1), s2 = inputs.slice(colS1);
+                let p1 = promedio(s1), p2 = promedio(s2);
+                tr.cells[colS1 + 1].innerText = p1;
+                tr.cells[colS1 + colS2 + 2].innerText = p2;
+                tr.cells[colS1 + colS2 + 3].innerText = (p1==='-'||p2==='-') ? '0.0' : ((parseFloat(p1)+parseFloat(p2))/2).toFixed(1);
             });
         }
 
-        function agregarAlumno() {
-            window.alumnos.push({nombre: "Nuevo", nota: 4.0});
-            guardar();
+        function promedio(arr) {
+            let v = arr.map(i => parseFloat(i.value)).filter(x => !isNaN(x));
+            if(!v.length) return "-";
+            let res = v.reduce((a,b) => a+b, 0) / v.length;
+            return (Math.ceil(res * 2) / 2).toFixed(1);
         }
 
-        function guardar() {
-            localStorage.setItem('alumnos', JSON.stringify(window.alumnos));
-            renderizarTabla();
+        function save() { localStorage.setItem('est', JSON.stringify(est)); localStorage.setItem('ramos', JSON.stringify(ramos)); render(); }
+        function agregarEstudiante() { let n = document.getElementById('nuevo-est').value; if(n) { est.push(n); save(); } }
+        function agregarRamo() { let r = document.getElementById('nuevo-ramo').value; if(r) { ramos.push(r); save(); } }
+        function previewLogo(e) { const reader = new FileReader(); reader.onload = (ev) => document.getElementById('logo-preview').src = ev.target.result; reader.readAsDataURL(e.target.files[0]); }
+        function exportarExcel() {
+            let csv = "Asignatura,Promedio S1,Promedio S2,Final\n";
+            document.querySelectorAll('#cuerpo-ramos tr').forEach(tr => {
+                csv += `${tr.cells[0].innerText},${tr.cells[colS1+1].innerText},${tr.cells[colS1+colS2+2].innerText},${tr.cells[colS1+colS2+3].innerText}\n`;
+            });
+            let a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv); a.download = 'notas.csv'; a.click();
         }
-
-        renderizarTabla();
+        render();
     </script>
 </body>
 </html>
