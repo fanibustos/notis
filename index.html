@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NotaFácil - Informe de Notas Quilacura</title>
+    <title>SigeDoc - Informe de Notas Quilacura</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -400,7 +400,7 @@
     <div class="workspace">
         <!-- Barra Lateral Izquierda (Registro Estudiantes y Plantillas) -->
         <div class="sidebar no-print">
-            <!-- SECCIÓN NUEVA: SISTEMA DE CARGA AUTOMÁTICA -->
+            <!-- SECCIÓN SISTEMA DE CARGA AUTOMÁTICA -->
             <div class="sidebar-section">
                 <h4 style="margin: 0 0 10px 0; color: var(--primary);"><i class="fa-solid fa-bolt"></i> Carga Rápida de Cursos</h4>
                 <select id="select-plantillas" class="form-control" onchange="cargarPlantillaSeleccionada()" style="margin-bottom: 8px;">
@@ -589,7 +589,7 @@
         }
     });
 
-    // Exponer la función de sincronización manual a la nube
+    // Sincronización manual a la nube
     window.guardarEnNubeCompleto = async () => {
         if (!userLogged) {
             alert("No estás conectado a internet o la autenticación sigue cargando.");
@@ -598,7 +598,6 @@
 
         document.getElementById('cloud-status').innerHTML = `<span><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...</span>`;
         try {
-            // Guardamos la base de datos completa de cursos y metadatos en la ruta estricta (Regla 1)
             const docRef = doc(dbCloud, 'artifacts', appId, 'users', userLogged.uid, 'datos', 'completo');
             await setDoc(docRef, window.db);
             
@@ -627,7 +626,6 @@
         plantillas: []
     };
 
-    // Hacer accesible globalmente para el script de Firebase
     window.db = db;
 
     let estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
@@ -756,7 +754,6 @@
         renderSelectorPlantillas();
     }
 
-    // Exportar función global para reiniciar la interfaz
     window.iniciarApp = iniciarApp;
 
     function guardarMeta() {
@@ -879,12 +876,16 @@
             tab.className = `student-tab ${idx === estudianteIdx ? 'active' : ''}`;
             tab.innerHTML = `<span><i class="fa-solid fa-user-graduate"></i> ${est.nombre}</span>`;
             tab.onclick = () => {
-                estudianteIdx = idx;
-                renderEstudiantes();
-                renderEvaluacion();
+                mouseClickStudent(idx);
             };
             listDiv.appendChild(tab);
         });
+    }
+
+    function mouseClickStudent(idx) {
+        estudianteIdx = idx;
+        renderEstudiantes();
+        renderEvaluacion();
     }
 
     function renderEvaluacion() {
@@ -1094,22 +1095,6 @@
         reader.readAsDataURL(e.target.files[0]);
     }
 
-    // Funciones globales vinculadas al alcance del HTML
-    window.registrarEstudiante = registrarEstudiante;
-    window.cambiarEstadoEstudiante = cambiarEstadoEstudiante;
-    window.quitarEstudianteActivo = quitarEstudianteActivo;
-    window.agregarAsignatura = agregarAsignatura;
-    window.eliminarAsignatura = eliminarAsignatura;
-    window.ajustarColumnas = ajustarColumnas;
-    window.editarNota = editarNota;
-    window.editarConcepto = editarConcepto;
-    window.calcularAsistencia = calcularAsistencia;
-    window.guardarCursoActualComoPlantilla = guardarCursoActualComoPlantilla;
-    window.cargarPlantillaSeleccionada = cargarPlantillaSeleccionada;
-    window.subirLogo = subirLogo;
-    window.cambiarFormato = cambiarFormato;
-    window.guardarMeta = guardarMeta;
-
     function imprimirTodos() {
         if(db.estudiantes.length === 0) {
             alert("No hay estudiantes registrados.");
@@ -1157,6 +1142,21 @@
         
         window.location.reload();
     }
+
+    window.registrarEstudiante = registrarEstudiante;
+    window.cambiarEstadoEstudiante = cambiarEstadoEstudiante;
+    window.quitarEstudianteActivo = quitarEstudianteActivo;
+    window.agregarAsignatura = agregarAsignatura;
+    window.eliminarAsignatura = eliminarAsignatura;
+    window.ajustarColumnas = ajustarColumnas;
+    window.editarNota = editarNota;
+    window.editarConcepto = editarConcepto;
+    window.calcularAsistencia = calcularAsistencia;
+    window.guardarCursoActualComoPlantilla = guardarCursoActualComoPlantilla;
+    window.cargarPlantillaSeleccionada = cargarPlantillaSeleccionada;
+    window.subirLogo = subirLogo;
+    window.cambiarFormato = cambiarFormato;
+    window.guardarMeta = guardarMeta;
     window.imprimirTodos = imprimirTodos;
 
     iniciarApp();
