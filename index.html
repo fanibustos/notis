@@ -13,6 +13,8 @@
         th, td { border: 1px solid #ccc; padding: 12px; text-align: center; }
         button, .nav-btn { padding: 10px 15px; cursor: pointer; border: none; border-radius: 4px; color: white; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
         .btn-add { background: #555; }
+        .btn-sync { background: #3182ce; }
+        .btn-excel { background: #2f855a; }
         .btn-plan { background: #805ad5; }
         input { width: 80px; padding: 5px; text-align: center; border: 1px solid #ddd; }
     </style>
@@ -22,6 +24,8 @@
         <h1>NotaFácil - Libreta de Notas</h1>
         <div class="toolbar">
             <button class="btn-add" onclick="agregarAlumno()"><i class="fa-solid fa-plus"></i> Agregar Estudiante</button>
+            <button class="btn-sync" onclick="guardarEnNube()"><i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar Nube</button>
+            <button class="btn-excel" onclick="exportarExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
             <a href="planificador.html" class="nav-btn btn-plan"><i class="fa-solid fa-calendar-days"></i> Ir a Planificador</a>
         </div>
         <table>
@@ -30,14 +34,44 @@
         </table>
     </div>
 
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'notafacil-cloud';
+
+        // Lógica de exportar Excel
+        window.exportarExcel = () => {
+            let csv = "Nombre,Nota\n";
+            window.alumnos.forEach(a => { csv += `${a.nombre},${a.nota}\n`; });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = window.URL.createObjectURL(blob);
+            a.download = "Reporte_Notas.csv";
+            a.click();
+        };
+
+        // Lógica de Nube
+        window.guardarEnNube = async () => {
+            const user = auth.currentUser || await signInAnonymously(auth).then(res => res.user);
+            await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'datos_app'), { alumnos: window.alumnos });
+            alert("✅ ¡Datos guardados en la nube!");
+        };
+    </script>
+
     <script>
-        // Cargar datos al iniciar
-        let alumnos = JSON.parse(localStorage.getItem('alumnos')) || [{nombre: "Ejemplo", nota: 5.0}];
+        // Cargar datos originales
+        window.alumnos = JSON.parse(localStorage.getItem('alumnos')) || [{nombre: "Ejemplo", nota: 5.0}];
 
         function renderizarTabla() {
             const tbody = document.getElementById('tabla-body');
             tbody.innerHTML = '';
-            alumnos.forEach((a, i) => {
+            window.alumnos.forEach((a, i) => {
                 tbody.innerHTML += `<tr>
                     <td><input type="text" value="${a.nombre}" onchange="alumnos[${i}].nombre=this.value; guardar()"></td>
                     <td><input type="number" value="${a.nota}" onchange="alumnos[${i}].nota=this.value; guardar()"></td>
@@ -46,16 +80,15 @@
         }
 
         function agregarAlumno() {
-            alumnos.push({nombre: "Nuevo", nota: 4.0});
+            window.alumnos.push({nombre: "Nuevo", nota: 4.0});
             guardar();
         }
 
         function guardar() {
-            localStorage.setItem('alumnos', JSON.stringify(alumnos));
+            localStorage.setItem('alumnos', JSON.stringify(window.alumnos));
             renderizarTabla();
         }
 
-        // Inicializar
         renderizarTabla();
     </script>
 </body>
