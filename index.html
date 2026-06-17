@@ -13,8 +13,8 @@
             --success: #15803d;       /* Verde Académico */
             --success-light: #f0fdf4; /* Fondo Verde Claro */
             --danger: #dc2626;        /* Rojo de Alerta */
-            --bg: #f8fafc;            /* Fondo Gris Claro */
-            --border: #64748b;        /* Gris de Bordes */
+            --bg: #f1f5f9;            /* Fondo Gris Claro */
+            --border: #94a3b8;        /* Gris de Bordes */
             --text: #334155;          /* Texto Gris Carbono */
         }
 
@@ -163,9 +163,21 @@
             height: fit-content;
         }
 
+        .sidebar-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .sidebar-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
         .student-list {
             margin-top: 15px;
-            max-height: 400px;
+            max-height: 350px;
             overflow-y: auto;
         }
 
@@ -327,6 +339,11 @@
             </select>
         </div>
         <div class="flex-group">
+            <!-- Indicador Visual de Base de Datos en la Nube -->
+            <span id="cloud-status" style="font-size: 12px; font-weight: bold; color: #64748b; margin-right: 10px;">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Conectando...
+            </span>
+            <button class="btn btn-primary" onclick="guardarEnNubeCompleto()"><i class="fa-solid fa-cloud"></i> Respaldar en Nube</button>
             <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Estudiante Activo</button>
             <button class="btn btn-success" onclick="imprimirTodos()"><i class="fa-solid fa-print"></i> Imprimir Todos los Estudiantes</button>
         </div>
@@ -381,14 +398,28 @@
 
     <!-- Layout de Contenidos -->
     <div class="workspace">
-        <!-- Barra Lateral Izquierda (Registro Estudiantes) -->
+        <!-- Barra Lateral Izquierda (Registro Estudiantes y Plantillas) -->
         <div class="sidebar no-print">
-            <h3><i class="fa-solid fa-users" style="color: var(--primary);"></i> Estudiantes</h3>
-            <div style="display: flex; gap: 5px; margin-bottom: 12px;">
-                <input type="text" id="input-nuevo-estudiante" class="form-control" placeholder="Nombre completo...">
-                <button class="btn btn-primary" onclick="registrarEstudiante()" style="padding: 8px 12px;">+</button>
+            <!-- SECCIÓN NUEVA: SISTEMA DE CARGA AUTOMÁTICA -->
+            <div class="sidebar-section">
+                <h4 style="margin: 0 0 10px 0; color: var(--primary);"><i class="fa-solid fa-bolt"></i> Carga Rápida de Cursos</h4>
+                <select id="select-plantillas" class="form-control" onchange="cargarPlantillaSeleccionada()" style="margin-bottom: 8px;">
+                    <option value="">-- Seleccionar Curso --</option>
+                </select>
+                <button class="btn btn-success btn-sm" onclick="guardarCursoActualComoPlantilla()" style="width: 100%; justify-content: center; font-size: 12px; padding: 6px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Curso Actual
+                </button>
             </div>
-            <div class="student-list" id="lista-estudiantes"></div>
+
+            <!-- SECCIÓN ESTUDIANTES -->
+            <div class="sidebar-section">
+                <h3><i class="fa-solid fa-users" style="color: var(--primary);"></i> Estudiantes</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 12px;">
+                    <input type="text" id="input-nuevo-estudiante" class="form-control" placeholder="Nombre completo...">
+                    <button class="btn btn-primary" onclick="registrarEstudiante()" style="padding: 8px 12px;">+</button>
+                </div>
+                <div class="student-list" id="lista-estudiantes"></div>
+            </div>
         </div>
 
         <!-- Área de Trabajo de Notas y Conceptos -->
@@ -506,8 +537,83 @@
     </div>
 </div>
 
+<!-- Lógica y Vinculación con la Base de Datos en la Nube -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+
+    // Configuración proveída por el Canvas
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const dbCloud = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'notafacil-quilacura-v3';
+
+    let userLogged = null;
+
+    // Autenticación inicial obligatoria antes de consultar (Regla 3)
+    const initAuth = async () => {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+            await signInAnonymously(auth);
+        }
+    };
+
+    initAuth().catch(err => {
+        console.error("Error en autenticación de la base de datos:", err);
+        document.getElementById('cloud-status').innerHTML = `<span style="color:var(--danger)"><i class="fa-solid fa-circle-exclamation"></i> Sin Conexión</span>`;
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            userLogged = user;
+            document.getElementById('cloud-status').innerHTML = `<span style="color:var(--success)"><i class="fa-solid fa-circle-check"></i> Conectado a la Nube</span>`;
+            
+            // Intentar recuperar el respaldo desde la nube (Regla 1)
+            try {
+                const docRef = doc(dbCloud, 'artifacts', appId, 'users', user.uid, 'datos', 'completo');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const datosNube = docSnap.data();
+                    if (confirm("☁ ¡Hemos encontrado un respaldo de tus cursos en la nube!\n¿Deseas sincronizar y cargar los datos guardados?")) {
+                        window.db = datosNube;
+                        window.guardarPersistencia();
+                        window.iniciarApp();
+                    }
+                }
+            } catch (error) {
+                console.error("Error al leer el respaldo de la base de datos:", error);
+            }
+        }
+    });
+
+    // Exponer la función de sincronización manual a la nube
+    window.guardarEnNubeCompleto = async () => {
+        if (!userLogged) {
+            alert("No estás conectado a internet o la autenticación sigue cargando.");
+            return;
+        }
+
+        document.getElementById('cloud-status').innerHTML = `<span><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...</span>`;
+        try {
+            // Guardamos la base de datos completa de cursos y metadatos en la ruta estricta (Regla 1)
+            const docRef = doc(dbCloud, 'artifacts', appId, 'users', userLogged.uid, 'datos', 'completo');
+            await setDoc(docRef, window.db);
+            
+            document.getElementById('cloud-status').innerHTML = `<span style="color:var(--success)"><i class="fa-solid fa-circle-check"></i> Sincronizado</span>`;
+            alert("✅ ¡Base de datos respaldada con éxito en la Nube!\nTodos tus cursos, estudiantes y promedios están a salvo.");
+        } catch (e) {
+            console.error("Error al guardar en la nube:", e);
+            document.getElementById('cloud-status').innerHTML = `<span style="color:var(--danger)"><i class="fa-solid fa-circle-xmark"></i> Error de Sincronización</span>`;
+            alert("Hubo un error al sincronizar con el servidor de la nube. Intentaremos guardar localmente.");
+        }
+    };
+</script>
+
 <script>
-    // Inicialización de la base de datos oficial
+    // Inicialización y persistencia de la base de datos local
     let db = JSON.parse(localStorage.getItem('notafacil_v3_db')) || {
         estudiantes: [],
         meta: {
@@ -517,8 +623,12 @@
             curso: "7° AÑO",
             anio: "2026",
             formato: "carta"
-        }
+        },
+        plantillas: []
     };
+
+    // Hacer accesible globalmente para el script de Firebase
+    window.db = db;
 
     let estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
     let colsS1 = 4;
@@ -536,7 +646,6 @@
 
     const opcionesCalificacion = ["-", "S", "F", "R/V", "N", "N/O"];
 
-    // Listado Oficial de Asignaturas de la Escuela Particular N° 8 Quilacura
     const asignaturasOficialesMineduc = [
         { nombre: 'LENGUA Y LITERATURA', notasS1: [], notasS2: [] },
         { nombre: 'IDIOMA EXTRANJERO: INGLÉS', notasS1: [], notasS2: [] },
@@ -550,7 +659,81 @@
         { nombre: 'LENGUA INDÍGENA', notasS1: [], notasS2: [] }
     ];
 
+    const plantillasPorDefecto = [
+        {
+            nombrePlantilla: "7° AÑO - CARLOS GODOY AEDO (Oficial)",
+            meta: {
+                establecimiento: "ESCUELA PARTICULAR Nº 8 QUILACURA",
+                comuna: "LAUTARO",
+                profesor: "CARLOS GODOY AEDO",
+                curso: "7° AÑO",
+                anio: "2026"
+            },
+            estudiantes: [
+                {
+                    nombre: "AMARAL JOFRE",
+                    estado: "Regular",
+                    asignaturas: [
+                        { nombre: 'LENGUA Y LITERATURA', notasS1: [5.2, 6.5], notasS2: [] },
+                        { nombre: 'IDIOMA EXTRANJERO: INGLÉS', notasS1: [], notasS2: [] },
+                        { nombre: 'MATEMÁTICA', notasS1: [], notasS2: [] },
+                        { nombre: 'CIENCIAS NATURALES', notasS1: [], notasS2: [] },
+                        { nombre: 'HISTORIA, GEOGRAFÍA Y CS.', notasS1: [], notasS2: [] },
+                        { nombre: 'TECNOLOGÍA', notasS1: [], notasS2: [] },
+                        { nombre: 'MÚSICA', notasS1: [], notasS2: [] },
+                        { nombre: 'ARTES VISUALES', notasS1: [], notasS2: [] },
+                        { nombre: 'EDUCACIÓN FÍSICA Y SALUD', notasS1: [], notasS2: [] },
+                        { nombre: 'LENGUA INDÍGENA', notasS1: [], notasS2: [] }
+                    ],
+                    conceptos: [
+                        { descriptor: "1.- Es capaz de expresar sus opiniones y sentimiento.", s1: "S", s2: "-" },
+                        { descriptor: "2.- Acepta la opinión de sus compañeros aunque sea diferente a la propia.", s1: "F", s2: "-" },
+                        { descriptor: "3.- Asume responsablemente sus deberes, cumpliendo con las exigencias.", s1: "S", s2: "-" },
+                        { descriptor: "4.- Establece relaciones de amistad y respeto con todos sus pares y profesores.", s1: "S", s2: "-" },
+                        { descriptor: "5.- Cuida su entorno.", s1: "S", s2: "-" },
+                        { descriptor: "6.- Se preocupa de su presentación personal e higiene.", s1: "S", s2: "-" },
+                        { descriptor: "7.- Valora y respeta la cultura mapuche.", s1: "S", s2: "-" }
+                    ],
+                    diasTrabajados: 100,
+                    diasAsistidos: 98
+                },
+                {
+                    nombre: "FRANCO ESPINOSA",
+                    estado: "Regular",
+                    asignaturas: JSON.parse(JSON.stringify(asignaturasOficialesMineduc)),
+                    conceptos: listaConceptosDefecto.map(c => ({ descriptor: c, s1: 'F', s2: '-' })),
+                    diasTrabajados: 100,
+                    diasAsistidos: 95
+                },
+                {
+                    nombre: "VÍCTOR ALONSO CÓRDOVA MARINAO",
+                    estado: "Regular",
+                    asignaturas: [
+                        { nombre: 'LENGUA Y LITERATURA', notasS1: [6.9], notasS2: [] },
+                        { nombre: 'IDIOMA EXTRANJERO: INGLÉS', notasS1: [6.9], notasS2: [] },
+                        { nombre: 'MATEMÁTICA', notasS1: [6.3], notasS2: [] },
+                        { nombre: 'CIENCIAS NATURALES', notasS1: [6.5], notasS2: [] },
+                        { nombre: 'HISTORIA, GEOGRAFÍA Y CS.', notasS1: [5.6], notasS2: [] },
+                        { nombre: 'TECNOLOGÍA', notasS1: [7.0], notasS2: [] },
+                        { nombre: 'MÚSICA', notasS1: [7.0], notasS2: [] },
+                        { nombre: 'ARTES VISUALES', notasS1: [6.5], notasS2: [] },
+                        { nombre: 'EDUCACIÓN FÍSICA Y SALUD', notasS1: [6.9], notasS2: [] },
+                        { nombre: 'LENGUA INDÍGENA', notasS1: [6.2], notasS2: [] }
+                    ],
+                    conceptos: listaConceptosDefecto.map(c => ({ descriptor: c, s1: 'S', s2: '-' })),
+                    diasTrabajados: 100,
+                    diasAsistidos: 99
+                }
+            ]
+        }
+    ];
+
     function iniciarApp() {
+        if(!db.plantillas || db.plantillas.length === 0) {
+            db.plantillas = plantillasPorDefecto;
+            guardarPersistencia();
+        }
+
         // Cargar Metadatos
         document.getElementById('meta-establecimiento').value = db.meta.establecimiento;
         document.getElementById('meta-comuna').value = db.meta.comuna;
@@ -559,7 +742,7 @@
         document.getElementById('meta-anio').value = db.meta.anio;
         document.getElementById('paper-format').value = db.meta.formato || 'carta';
 
-        // Actualizar vistas dinámicas de texto
+        // Actualizar textos institucionales
         document.getElementById('lbl-colegio-display').innerText = db.meta.establecimiento.toUpperCase();
         document.getElementById('lbl-comuna-display').innerText = db.meta.comuna.toUpperCase();
         document.getElementById('lbl-firma-docente').innerText = db.meta.profesor.toUpperCase();
@@ -570,7 +753,11 @@
         cambiarFormato();
         renderEstudiantes();
         renderEvaluacion();
+        renderSelectorPlantillas();
     }
+
+    // Exportar función global para reiniciar la interfaz
+    window.iniciarApp = iniciarApp;
 
     function guardarMeta() {
         db.meta.establecimiento = document.getElementById('meta-establecimiento').value;
@@ -590,6 +777,7 @@
     function guardarPersistencia() {
         localStorage.setItem('notafacil_v3_db', JSON.stringify(db));
     }
+    window.guardarPersistencia = guardarPersistencia;
 
     function cambiarFormato() {
         const fmt = document.getElementById('paper-format').value;
@@ -602,6 +790,66 @@
         guardarMeta();
     }
 
+    /* SISTEMA DE PLANTILLAS DINÁMICO */
+    function renderSelectorPlantillas() {
+        const select = document.getElementById('select-plantillas');
+        select.innerHTML = '<option value="">-- Seleccionar Curso --</option>';
+        
+        db.plantillas.forEach((p, index) => {
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.innerText = p.nombrePlantilla;
+            select.appendChild(opt);
+        });
+    }
+
+    function cargarPlantillaSeleccionada() {
+        const select = document.getElementById('select-plantillas');
+        const idx = select.value;
+        if(idx === "") return;
+
+        if(confirm(`¿Deseas cargar el curso "${db.plantillas[idx].nombrePlantilla}"?\nEsto reemplazará la lista de estudiantes actual.`)) {
+            const plantilla = db.plantillas[idx];
+            
+            db.meta.establecimiento = plantilla.meta.establecimiento;
+            db.meta.comuna = plantilla.meta.comuna;
+            db.meta.profesor = plantilla.meta.profesor;
+            db.meta.curso = plantilla.meta.curso;
+            db.meta.anio = plantilla.meta.anio;
+            
+            db.estudiantes = JSON.parse(JSON.stringify(plantilla.estudiantes));
+            estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
+
+            guardarPersistencia();
+            iniciarApp();
+        }
+        select.value = "";
+    }
+
+    function guardarCursoActualComoPlantilla() {
+        const cursoNombre = document.getElementById('meta-curso').value.trim() || "CURSO NUEVO";
+        const profNombre = document.getElementById('meta-profesor').value.trim() || "SIN DOCENTE";
+        const templateName = `${cursoNombre.toUpperCase()} - ${profNombre.toUpperCase()} (${new Date().toLocaleDateString()})`;
+
+        const nuevaPlantilla = {
+            nombrePlantilla: templateName,
+            meta: {
+                establecimiento: document.getElementById('meta-establecimiento').value,
+                comuna: document.getElementById('meta-comuna').value,
+                profesor: document.getElementById('meta-profesor').value,
+                curso: document.getElementById('meta-curso').value,
+                anio: document.getElementById('meta-anio').value
+            },
+            estudiantes: JSON.parse(JSON.stringify(db.estudiantes))
+        };
+
+        db.plantillas.push(nuevaPlantilla);
+        guardarPersistencia();
+        renderSelectorPlantillas();
+        alert(`✔ ¡Curso guardado como plantilla con éxito!\nNombre: "${templateName}"\nAhora puedes respaldarlo en la nube.`);
+    }
+
+    /* MÓDULO ESTUDIANTES */
     function registrarEstudiante() {
         const input = document.getElementById('input-nuevo-estudiante');
         if(!input.value.trim()) return;
@@ -846,6 +1094,22 @@
         reader.readAsDataURL(e.target.files[0]);
     }
 
+    // Funciones globales vinculadas al alcance del HTML
+    window.registrarEstudiante = registrarEstudiante;
+    window.cambiarEstadoEstudiante = cambiarEstadoEstudiante;
+    window.quitarEstudianteActivo = quitarEstudianteActivo;
+    window.agregarAsignatura = agregarAsignatura;
+    window.eliminarAsignatura = eliminarAsignatura;
+    window.ajustarColumnas = ajustarColumnas;
+    window.editarNota = editarNota;
+    window.editarConcepto = editarConcepto;
+    window.calcularAsistencia = calcularAsistencia;
+    window.guardarCursoActualComoPlantilla = guardarCursoActualComoPlantilla;
+    window.cargarPlantillaSeleccionada = cargarPlantillaSeleccionada;
+    window.subirLogo = subirLogo;
+    window.cambiarFormato = cambiarFormato;
+    window.guardarMeta = guardarMeta;
+
     function imprimirTodos() {
         if(db.estudiantes.length === 0) {
             alert("No hay estudiantes registrados.");
@@ -893,6 +1157,7 @@
         
         window.location.reload();
     }
+    window.imprimirTodos = imprimirTodos;
 
     iniciarApp();
 </script>
