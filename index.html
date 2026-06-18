@@ -3,2083 +3,936 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SigeDoc - Suite de Gestión Curricular</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <link rel="manifest" href='data:application/manifest+json,{"name":"SigeDoc - Gestión Docente","short_name":"SigeDoc","start_url":".","display":"standalone","background_color":"#f3f4f6","theme_color":"#374151","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3135/3135768.png","sizes":"512x512","type":"image/png"}]}' />
-    <meta name="theme-color" content="#374151">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135768.png">
-
-    <!-- Tailwind CSS para estilizado ágil -->
+    <title>SigeDoc - Sistema de Gestión Docente</title>
+    <!-- Tailwind CSS para diseño moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <!-- Iconos FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --wa-bg: #e5e7eb;
-            --wa-gray-dark: #1f2937;    /* Gris carbón principal */
-            --wa-gray-light: #4b5563;   /* Gris medio interactivo */
-            --wa-header: #f3f4f6;       /* Fondo de cabeceras gris claro */
-            --wa-active: #e5e7eb;       /* Elemento seleccionado */
-            --wa-bubble-in: #ffffff;    /* Globo de entrada (Blanco puro) */
-            --wa-bubble-out: #f1f5f9;   /* Globo de salida (Gris suave) */
-            --wa-border: #e5e7eb;       /* Bordes separadores */
-            --wa-text-gray: #6b7280;    /* Textos secundarios */
-            --text-dark: #111827;       /* Texto negro/gris de lectura */
-            --danger: #dc2626;          /* Rojo funcional para borrar/bajas */
-            --border: #94a3b8;
+            --wa-teal: #0f172a; /* Slate oscuro para cabecera elegante */
+            --wa-active: #f0fdf4; /* Verde suave para elemento seleccionado */
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Ocultar barra de scroll de pestañas por defecto para una vista táctil perfecta */
-        #tabs-cursos-contenedor::-webkit-scrollbar {
-            height: 4px;
-        }
-        #tabs-cursos-contenedor::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.05);
-        }
-        #tabs-cursos-contenedor::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 4px;
-        }
-
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #d1d5db;
-            color: var(--text-dark);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f1f5f9;
         }
-
-        .app-window {
-            width: 100%;
-            height: 100vh;
-            max-width: 1600px;
-            background: #f3f4f6;
-            display: grid;
-            grid-template-columns: 380px 1fr;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Sidebar izquierdo */
-        .sidebar {
-            background: white;
-            border-right: 1px solid var(--wa-border);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .sidebar-header {
-            background: var(--wa-header);
-            padding: 10px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--wa-border);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: var(--wa-gray-dark);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            color: #4b5563;
-            font-size: 18px;
-            align-items: center;
-        }
-
-        .header-actions i {
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .header-actions i:hover {
-            color: var(--wa-gray-light);
-        }
-
-        /* Animación para el botón de instalación PWA */
-        #btn-install-pwa {
-            animation: pulse-gray 2s infinite;
-            border-radius: 50%;
-            padding: 4px;
-        }
-
-        @keyframes pulse-gray {
-            0% { box-shadow: 0 0 0 0 rgba(75, 85, 99, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(75, 85, 99, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(75, 85, 99, 0); }
-        }
-
-        /* Barra de búsqueda e ingreso */
-        .search-container {
-            padding: 8px 12px;
-            background: white;
-            border-bottom: 1px solid var(--wa-border);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .search-bar-wrapper {
-            background: var(--wa-header);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            padding: 5px 12px;
-            gap: 10px;
-        }
-
-        .search-bar-wrapper input {
-            background: transparent;
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-
-        /* Listado de Estudiantes */
-        .chat-list {
-            flex-grow: 1;
-            overflow-y: auto;
-            background: white;
-        }
-
         .chat-item {
             display: flex;
-            padding: 12px 16px;
             align-items: center;
-            gap: 15px;
+            padding: 12px 16px;
             cursor: pointer;
-            border-bottom: 1px solid #f3f4f6;
-            transition: background 0.2s;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.2s;
         }
-
         .chat-item:hover {
-            background: #f9fafb;
+            background-color: #f8fafc;
         }
-
         .chat-item.active {
-            background: var(--wa-active);
+            background-color: var(--wa-active);
+            border-left: 4px solid #10b981;
         }
-
         .student-avatar {
-            width: 49px;
-            height: 49px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: #64748b;
-            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 18px;
+            color: white;
+            margin-right: 12px;
+            font-size: 14px;
+            flex-shrink: 0;
+            transition: background-color 0.2s;
         }
-
         .chat-info {
             flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            min-width: 0;
         }
-
         .chat-info-top {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: baseline;
         }
-
         .chat-name {
             font-weight: 600;
-            font-size: 15px;
-            color: var(--text-dark);
+            font-size: 14px;
+            color: #1e293b;
         }
-
         .chat-time {
             font-size: 11px;
-            color: var(--wa-text-gray);
+            color: #64748b;
+            font-weight: 700;
         }
-
         .chat-message-preview {
-            font-size: 13px;
-            color: var(--wa-text-gray);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Personalización de la huincha de desplazamiento (Scrollbar) para que sea visible y elegante */
-        .chat-messages-area::-webkit-scrollbar,
-        .chat-list::-webkit-scrollbar {
-            width: 10px; /* Ancho cómodo para mouse y touch */
-        }
-
-        .chat-messages-area::-webkit-scrollbar-track,
-        .chat-list::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 8px;
-        }
-
-        .chat-messages-area::-webkit-scrollbar-thumb,
-        .chat-list::-webkit-scrollbar-thumb {
-            background: #94a3b8; /* Gris pizarra medio */
-            border: 2px solid transparent;
-            background-clip: padding-box;
-            border-radius: 8px;
-        }
-
-        .chat-messages-area::-webkit-scrollbar-thumb:hover,
-        .chat-list::-webkit-scrollbar-thumb:hover {
-            background: #4b5563; /* Gris carbón al pasar el cursor */
-            border: 2px solid transparent;
-            background-clip: padding-box;
-        }
-
-        .chat-window {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            position: relative;
-            background-color: var(--wa-bg);
-            /* Usamos la textura de fondo clásica pero con opacidad baja sobre fondo gris de escala */
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-            background-blend-mode: multiply;
-            overflow: hidden; /* Evita que la ventana de chat se estire infinitamente hacia abajo */
-        }
-
-        /* Pantalla de Bienvenida */
-        .welcome-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            background: #f9fafb;
-            text-align: center;
-            padding: 40px;
-            border-bottom: 6px solid var(--wa-gray-light);
-        }
-
-        .welcome-screen i {
-            font-size: 80px;
-            color: #cbd5e1;
-            margin-bottom: 20px;
-        }
-
-        .welcome-screen h2 {
-            font-size: 32px;
-            font-weight: 300;
-            color: #374151;
-            margin-bottom: 10px;
-        }
-
-        .welcome-screen p {
-            font-size: 14px;
-            color: #6b7280;
-            max-width: 480px;
-            line-height: 20px;
-        }
-
-        /* Cabecera del Chat Activo */
-        .chat-header {
-            background: var(--wa-header);
-            padding: 10px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--wa-border);
-            z-index: 10;
-        }
-
-        .chat-student-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .chat-student-name {
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--text-dark);
-        }
-
-        .chat-student-status {
             font-size: 12px;
-            color: var(--wa-text-gray);
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
             margin-top: 2px;
         }
-
-        .chat-messages-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 20px 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .message-bubble {
-            max-width: 85%;
-            padding: 15px;
-            border-radius: 8px;
-            position: relative;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-            line-height: 1.4;
-        }
-
-        .bubble-in {
-            background: var(--wa-bubble-in);
-            align-self: flex-start;
-            border-top-left-radius: 0;
-            border: 1px solid #e5e7eb;
-        }
-
-        .bubble-out {
-            background: var(--wa-bubble-out);
-            align-self: flex-end;
-            border-top-right-radius: 0;
-            border: 1px solid #cbd5e1;
-        }
-
-        .bubble-title {
-            font-weight: bold;
-            color: var(--wa-gray-dark);
-            font-size: 14px;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Barra de Entrada inferior */
-        .chat-input-bar {
-            background: var(--wa-header);
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-top: 1px solid var(--wa-border);
-            z-index: 10;
-        }
-
-        .chat-input-bar input {
-            flex-grow: 1;
-            background: white;
-            border: none;
-            outline: none;
-            padding: 11px 16px;
-            border-radius: 8px;
-            font-size: 15px;
-            color: var(--text-dark);
-        }
-
-        .chat-input-bar .btn-send {
-            width: 44px;
-            height: 44px;
-            background: transparent;
-            border: none;
-            color: #4b5563;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .chat-input-bar .btn-send:hover {
-            color: var(--wa-gray-dark);
-        }
-
-        /* Tablas e inputs adaptados */
-        .meta-form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        table.bordered {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            margin-top: 5px;
-        }
-
-        table.bordered th, table.bordered td {
-            border: 1px solid #cbd5e1;
-            padding: 5px;
-            text-align: center;
-            font-size: 12px;
-        }
-
-        table.bordered th {
-            background: #f3f4f6;
-            font-weight: 700;
-            color: var(--wa-gray-dark);
-        }
-
-        /* Estilos de Impresión Oficial */
-        .print-only-layout {
-            display: none;
-        }
-
+        /* Estilo para impresión del informe de notas */
         @media print {
+            body { background: white; color: black; }
             .no-print { display: none !important; }
-            body { background: white; padding: 0; margin: 0; color: #000; }
-            .print-only-layout { display: block !important; }
-            .app-window { display: none !important; }
-            
-            .hoja-informe {
-                width: 100%;
-                max-width: 19cm;
-                margin: 0 auto;
-                padding: 1.2cm;
-                box-sizing: border-box;
-            }
-
-            .print-header-grid {
-                display: grid;
-                grid-template-columns: 100px 1fr 100px;
-                align-items: center;
-                border-bottom: 2px solid #000;
-                padding-bottom: 12px;
-                margin-bottom: 15px;
-            }
-
-            .print-school-meta {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 15px;
-            }
-
-            .print-school-meta td {
-                border: 1px solid #000 !important;
-                padding: 5px;
-                font-size: 11px;
-            }
-
-            .lbl-meta {
-                font-weight: bold;
-                background-color: #f2f2f2 !important;
-                width: 25%;
-            }
-
-            table.bordered-print {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 20px;
-            }
-
-            table.bordered-print th, table.bordered-print td {
-                border: 1px solid #000 !important;
-                padding: 5px;
-                font-size: 11px;
-                text-align: center;
-            }
-
-            table.bordered-print th {
-                background-color: #f2f2f2 !important;
-                font-weight: bold;
-            }
-
-            .print-signatures {
-                margin-top: 50px;
-                display: flex;
-                justify-content: space-around;
-                text-align: center;
-            }
-
-            .print-sig-line {
-                width: 200px;
-                border-top: 1px solid #000;
-                padding-top: 5px;
-                font-size: 11px;
-                font-weight: bold;
-            }
-
-            .page-break {
-                page-break-after: always;
-            }
-
-            @page {
-                size: auto;
-                margin: 1cm;
-            }
+            .print-area { display: block !important; width: 100%; max-width: 19cm; margin: 0 auto; padding: 1.5cm; }
+            .grade-table th, .grade-table td { border: 1px solid #000 !important; }
         }
     </style>
 </head>
-<body id="main-body">
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
 
-    <div class="app-window no-print">
-        
-        <!-- SIDEBAR DE CHATS (Estudiantes) -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="user-avatar" id="lbl-avatar-iniciales">SD</div>
-                <div class="header-actions">
-                    <!-- Botón para instalar PWA directo -->
-                    <i class="fa-solid fa-mobile-screen-button" id="btn-install-pwa" title="Instalar SigeDoc en Celular o PC" style="display: none;" onclick="instalarSigeDocApp()"></i>
-                    
-                    <span id="cloud-status" style="font-size: 11px; font-weight: bold; color: var(--wa-text-gray); margin-right: 5px;">
-                        <i class="fa-solid fa-cloud"></i>
-                    </span>
-                    <i class="fa-solid fa-cloud-arrow-up" title="Sincronizar en Nube" onclick="guardarEnNubeCompleto()"></i>
-                    <i class="fa-solid fa-download" title="Descargar Respaldo JSON" onclick="descargarRespaldoLocal()"></i>
-                    <i class="fa-solid fa-upload" title="Subir Respaldo JSON" onclick="document.getElementById('import-file-input').click()"></i>
-                    <input type="file" id="import-file-input" style="display:none" accept=".json" onchange="importarRespaldoLocal(event)">
-                </div>
+    <!-- CABECERA PRINCIPAL -->
+    <header class="bg-[#0f172a] text-white px-6 py-4 flex items-center justify-between shadow-md shrink-0 no-print">
+        <div class="flex items-center gap-3">
+            <div class="bg-emerald-500 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold shadow-inner">
+                <i class="fa-solid fa-graduation-cap"></i>
             </div>
-
-            <!-- Pestañas Horizontales por Curso -->
-            <div class="bg-slate-100 border-b border-slate-200 p-2 flex items-center gap-1.5 overflow-x-auto" id="tabs-cursos-contenedor">
-                <!-- Se inyecta dinámicamente -->
-            </div>
-
-            <div class="search-container">
-                <div class="search-bar-wrapper">
-                    <i class="fa-solid fa-search" style="color: var(--wa-text-gray);"></i>
-                    <input type="text" id="input-busqueda-estudiante" placeholder="Buscar estudiante..." oninput="filtrarEstudiantesListado()">
-                </div>
-                <div class="flex gap-1.5">
-                    <button class="flex-grow bg-slate-700 hover:bg-slate-800 text-white font-bold py-1.5 px-3 rounded text-xs transition flex items-center justify-center gap-1.5 shadow-sm" onclick="abrirNuevoEstudianteModal()">
-                        <i class="fa-solid fa-user-plus"></i> + Agregar Estudiante
-                    </button>
-                    <select id="select-plantillas" class="border border-slate-300 rounded px-2 text-xs bg-white w-1/3 outline-none" style="height: 32px;" onchange="cargarPlantillaSeleccionada()">
-                        <option value="">-- Plantillas --</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Listado de Estudiantes (Conversaciones) -->
-            <div class="chat-list" id="lista-estudiantes">
-                <!-- Se inyecta dinámicamente -->
+            <div>
+                <h1 class="text-lg font-extrabold tracking-wide">SigeDoc</h1>
+                <p class="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase">Sistema de Gestión Docente de NotaFácil</p>
             </div>
         </div>
+        
+        <div class="flex items-center gap-4">
+            <!-- Estatus de Sincronización -->
+            <div id="cloud-status" class="bg-slate-800 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
+                <span class="text-slate-400"><i class="fa-solid fa-cloud"></i> Sincronizando...</span>
+            </div>
 
-        <!-- VENTANA DE CONVERSACIÓN (Evaluaciones en burbujas) -->
-        <div class="chat-window">
-            
-            <!-- Pantalla por Defecto -->
-            <div class="welcome-screen" id="welcome-screen-wa">
-                <i class="fa-solid fa-graduation-cap"></i>
-                <h2>SigeDoc Web</h2>
-                <p>Gestiona calificaciones, evalúa el desarrollo personal e imprime reportes oficiales directos al MINEDUC. Diseño adaptativo e instalación multiplataforma.</p>
-                <div id="pwa-guide-banner" class="mt-4 p-3 bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-600 max-w-sm">
-                    <i class="fa-solid fa-circle-info text-slate-800"></i> <strong>Instalación Directa:</strong><br>
-                    Para usarlo sin navegador, haz clic en el botón de teléfono <i class="fa-solid fa-mobile-screen-button"></i> arriba a la izquierda o selecciona "Agregar a la pantalla de inicio".
+            <!-- Accesos Rápidos -->
+            <a href="planificador.html" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-map-location-dot"></i> PlanificaFácil
+            </a>
+            <button onclick="forzarSincronizacionCloud()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-3 py-2 rounded-lg transition" title="Respaldar en la Nube">
+                <i class="fa-solid fa-rotate"></i> Respaldar
+            </button>
+        </div>
+    </header>
+
+    <!-- CUERPO DE LA APLICACIÓN -->
+    <div class="flex flex-1 overflow-hidden no-print">
+        
+        <!-- PANEL IZQUIERDO: Listado de Alumnos -->
+        <aside class="w-[360px] bg-white border-r border-slate-200 flex flex-col shrink-0 h-full">
+            <!-- Barra Superior del Panel: Selector de Curso y Buscador -->
+            <div class="p-4 border-b border-slate-100 bg-slate-50 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Curso de Trabajo</label>
+                    <select id="selector-curso" onchange="cambiarCurso(this.value)" class="bg-white border border-slate-200 rounded-lg text-xs font-bold p-1 px-2 text-slate-700 focus:outline-none focus:border-emerald-500">
+                        <option value="7_basico">7° AÑO BÁSICO</option>
+                        <option value="8_basico">8° AÑO BÁSICO</option>
+                    </select>
+                </div>
+                <!-- Barra de búsqueda -->
+                <div class="relative">
+                    <input type="text" id="buscador-alumnos" oninput="filtrarAlumnos(this.value)" placeholder="Buscar estudiante por nombre..." class="w-full bg-white border border-slate-200 text-xs rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-emerald-500">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
                 </div>
             </div>
 
-            <!-- Chat Activo -->
-            <div id="active-chat-wa" style="display: none; flex-direction: column; height: 100%; overflow: hidden;">
-                
-                <!-- Cabecera del Chat -->
-                <div class="chat-header">
-                    <div class="chat-student-profile">
-                        <div class="student-avatar" id="lbl-avatar-estudiante-activo">VI</div>
-                        <div>
-                            <div class="chat-student-name" id="lbl-nombre-estudiante-activo">VÍCTOR ALONSO CÓRDOVA MARINAO</div>
-                            <div class="chat-student-status">
-                                Estado: 
-                                <select id="estado-estudiante-activo" onchange="cambiarEstadoEstudiante()" style="border: none; background: transparent; font-weight: bold; color: var(--wa-gray-light); cursor: pointer; outline: none;">
-                                    <option value="Regular">Regular</option>
-                                    <option value="Irregular">Irregular</option>
+            <!-- Lista Dinámica de Estudiantes -->
+            <div id="lista-estudiantes" class="flex-1 overflow-y-auto">
+                <!-- Se inyecta dinámicamente -->
+            </div>
+
+            <!-- Pie del Panel: Agregar Estudiante -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50">
+                <div class="flex gap-2">
+                    <input type="text" id="nuevo-nombre" placeholder="Nombre completo del alumno..." class="flex-1 bg-white border border-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500">
+                    <button onclick="registrarEstudianteRapido()" class="bg-[#0f172a] hover:bg-slate-800 text-white px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-plus"></i> Añadir
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- PANEL DERECHO: Ficha de Evaluación -->
+        <main class="flex-1 bg-slate-100 flex flex-col h-full overflow-hidden">
+            
+            <div id="ficha-vacia" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8">
+                <i class="fa-solid fa-circle-user text-6xl mb-4 text-slate-300"></i>
+                <p class="text-sm font-semibold">Seleccione un estudiante de la lista para gestionar sus notas</p>
+                <p class="text-xs text-slate-400 mt-1">SigeDoc recalcula de forma automática todos los promedios.</p>
+            </div>
+
+            <div id="ficha-contenido" class="flex-1 flex flex-col h-full overflow-hidden hidden">
+                <!-- Cabecera de la Ficha -->
+                <div class="bg-white p-6 border-b border-slate-200 flex justify-between items-center shrink-0">
+                    <div>
+                        <h2 id="activo-nombre" class="text-xl font-bold text-slate-800">Cargando...</h2>
+                        <div class="flex items-center gap-3 mt-1">
+                            <span class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-id-card"></i> Condición Académica:</span>
+                            <select id="estado-estudiante-activo" onchange="cambiarEstadoEstudiante()" class="bg-slate-100 border border-slate-200 rounded px-2 py-0.5 text-xs font-bold text-slate-700">
+                                <option value="Regular">✔ Regular</option>
+                                <option value="Alerta">⚠ En Alerta</option>
+                                <option value="Retirado">🛇 Retirado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="imprimirInformeEstudiante()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-print"></i> Imprimir Informe UTP
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contenido de Asignaturas y Notas (Scroll) -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                    <!-- Notas por Asignatura -->
+                    <div id="contenedor-asignaturas" class="space-y-6">
+                        <!-- Generado dinámicamente -->
+                    </div>
+
+                    <!-- Comportamiento y Criterios Personales -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4"><i class="fa-solid fa-heart"></i> Desarrollo Personal y Comportamiento</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Responsabilidad y Cumplimiento de Deberes</label>
+                                <select id="crit-responsabilidad" onchange="guardarCriterios()" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-semibold">
+                                    <option value="Excelente">Excelente</option>
+                                    <option value="Muy Bueno">Muy Bueno</option>
+                                    <option value="Bueno">Bueno</option>
+                                    <option value="Suficiente">Suficiente</option>
+                                    <option value="Insuficiente">Insuficiente</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Respeto y Convivencia Escolar</label>
+                                <select id="crit-respeto" onchange="guardarCriterios()" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-semibold">
+                                    <option value="Excelente">Excelente</option>
+                                    <option value="Muy Bueno">Muy Bueno</option>
+                                    <option value="Bueno">Bueno</option>
+                                    <option value="Suficiente">Suficiente</option>
+                                    <option value="Insuficiente">Insuficiente</option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <div class="flex gap-2">
-                        <button class="bg-[#374151] hover:bg-gray-800 text-white font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 transition" onclick="imprimirActivo()"><i class="fa-solid fa-print"></i> Imprimir Activo</button>
-                        <button class="bg-slate-500 hover:bg-slate-600 text-white font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 transition" onclick="imprimirTodos()"><i class="fa-solid fa-users"></i> Imprimir Todos</button>
-                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-2.5 py-1.5 rounded transition" onclick="quitarEstudianteActivo()"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-
-                <div class="chat-messages-area" id="chat-messages-container">
-                    
-                    <!-- Burbuja 1: Información de la Escuela -->
-                    <div class="message-bubble bubble-in">
-                        <div class="bubble-title">
-                            <span><i class="fa-solid fa-school"></i> Datos del Establecimiento</span>
-                            <i class="fa-solid fa-pen" style="font-size:11px; color: var(--wa-text-gray);"></i>
-                        </div>
-                        <div class="meta-form-grid">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase">Establecimiento:</label>
-                                <input type="text" id="meta-establecimiento" class="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800" onchange="guardarMeta()">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase">Comuna:</label>
-                                <input type="text" id="meta-comuna" class="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800" onchange="guardarMeta()">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase">Profesor Jefe:</label>
-                                <input type="text" id="meta-profesor" class="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800" onchange="guardarMeta()">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase">Curso y Año:</label>
-                                <div class="flex gap-1">
-                                    <input type="text" id="meta-curso" class="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800" onchange="guardarMeta()" placeholder="Curso">
-                                    <input type="text" id="meta-anio" class="w-20 border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800 text-center" onchange="guardarMeta()" placeholder="Año">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Burbuja 2: Planilla de Calificaciones -->
-                    <div class="message-bubble bubble-out w-full max-w-[95%]">
-                        <div class="bubble-title">
-                            <span class="text-slate-700"><i class="fa-solid fa-list-check"></i> Calificaciones de Asignaturas</span>
-                            <div class="flex gap-1 items-center">
-                                <span class="text-[10px] text-slate-500 font-semibold normal-case">Columnas:</span>
-                                <button class="bg-[#374151] text-white text-[9px] font-bold px-1.5 py-0.5 rounded" onclick="ajustarColumnas('s1', 1)">S1 +</button>
-                                <button class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded" onclick="ajustarColumnas('s1', -1)">S1 -</button>
-                                <button class="bg-[#374151] text-white text-[9px] font-bold px-1.5 py-0.5 rounded" onclick="ajustarColumnas('s2', 1)">S2 +</button>
-                                <button class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded" onclick="ajustarColumnas('s2', -1)">S2 -</button>
-                            </div>
-                        </div>
-                        
-                        <div class="overflow-x-auto">
-                            <table class="bordered">
-                                <thead>
-                                    <tr>
-                                        <th rowspan="2" class="w-[25%] text-left pl-2">Asignaturas</th>
-                                        <th id="header-s1" colspan="4">Primer Semestre</th>
-                                        <th rowspan="2" class="bg-slate-200 w-[6%] text-slate-800 font-bold">S1</th>
-                                        <th id="header-s2" colspan="4">Segundo Semestre</th>
-                                        <th rowspan="2" class="bg-slate-200 w-[6%] text-slate-800 font-bold">S2</th>
-                                        <th rowspan="2" class="bg-slate-300 text-slate-800 font-bold w-[8%]">Anual</th>
-                                        <th rowspan="2" class="no-print w-[5%]">Borrar</th>
-                                    </tr>
-                                    <tr id="subheaders-notas-fila">
-                                        <!-- Dinámico -->
-                                    </tr>
-                                </thead>
-                                <tbody id="tabla-notas-cuerpo"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Burbuja 3: Conceptos de Desarrollo Personal -->
-                    <div class="message-bubble bubble-in w-full max-w-[90%]">
-                        <div class="bubble-title">
-                            <span><i class="fa-solid fa-award"></i> Conceptos de Desarrollo Personal</span>
-                            <span class="text-xs text-slate-500 font-semibold normal-case">Evaluación Formativa</span>
-                        </div>
-                        <table class="bordered">
-                            <thead>
-                                <tr>
-                                    <th class="text-left pl-2 w-[60%]">Conceptos / Indicadores</th>
-                                    <th class="w-[20%]">I Semestre</th>
-                                    <th class="w-[20%]">II Semestre</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-conceptos-cuerpo"></tbody>
-                        </table>
-                    </div>
-
-                    <!-- Burbuja 4: Asistencia -->
-                    <div class="message-bubble bubble-out w-full max-w-sm">
-                        <div class="bubble-title">
-                            <span class="text-slate-700"><i class="fa-solid fa-calendar-days"></i> Registro de Asistencia</span>
-                        </div>
-                        <table class="bordered">
-                            <thead>
-                                <tr>
-                                    <th>Días Trabajados</th>
-                                    <th>Días Asistidos</th>
-                                    <th class="bg-slate-200 text-slate-800">% Asistencia</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input type="number" id="asist-trabajados" class="w-full text-center font-bold bg-transparent outline-none" oninput="calcularAsistencia()"></td>
-                                    <td><input type="number" id="asist-asistidos" class="w-full text-center font-bold bg-transparent outline-none" oninput="calcularAsistencia()"></td>
-                                    <td class="font-bold text-sm bg-slate-100 text-slate-800"><span id="lbl-porcentaje">0.0</span>%</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
-
-                <div class="chat-input-bar">
-                    <i class="fa-regular fa-face-smile text-slate-500 text-xl cursor-pointer"></i>
-                    <i class="fa-solid fa-paperclip text-slate-500 text-lg cursor-pointer" onclick="document.getElementById('logo-file-input').click()" title="Subir Logo de la Escuela"></i>
-                    <input type="file" id="logo-file-input" style="display:none" accept="image/*" onchange="subirLogo(event)">
-                    
-                    <input type="text" id="input-nueva-asignatura-chat" placeholder="Escribe una asignatura y presiona Enter para añadirla a la libreta..." onkeydown="chequearEnterAsignatura(event)">
-                    <button class="btn-send" onclick="agregarAsignaturaDesdeInput()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
 
             </div>
-        </div>
 
+        </main>
     </div>
 
-    <!-- FORMATO DE IMPRESIÓN OFICIAL DEL MINEDUC (OCULTO EN PANTALLA) -->
-    <div id="contenedor-impresion-mineduc" class="print-only-layout"></div>
+    <!-- SECCIÓN DE IMPRESIÓN OFICIAL (Aislada para @media print) -->
+    <div id="area-impresion-utp" class="print-area hidden">
+        <!-- Rellenado dinámicamente -->
+    </div>
 
-    <!-- MODAL DE CONFIGURACIÓN DE RED COMPARTIDA -->
-    <div id="modal-net-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modal-content-panel">
-            <div class="bg-[#374151] text-white px-5 py-4 flex justify-between items-center">
-                <h3 class="font-bold text-sm uppercase tracking-wide flex items-center gap-2"><i class="fa-solid fa-network-wired"></i> Red de Sincronización</h3>
-                <i class="fa-solid fa-times cursor-pointer text-lg hover:text-slate-300" onclick="cerrarConfigRed()"></i>
+    <!-- MODAL DE ALERTAS PERSONALIZADO -->
+    <div id="modal-alerta" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center border border-slate-100">
+            <div class="mb-4">
+                <i id="modal-alerta-icono" class="fa-solid fa-circle-check text-green-500 text-4xl"></i>
             </div>
-            <div class="p-5 flex flex-col gap-4">
-                <p class="text-xs text-slate-500 leading-relaxed">Conéctate a una Red para colaborar con otros profesores. Si ingresan el mismo código, verán y completarán las notas al mismo tiempo.</p>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-600 block uppercase mb-1">ID del Curso o Red (Ej: QUILACURA-7A)</label>
-                    <input type="text" id="input-net-room-id" placeholder="Ingresa el identificador único..." class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-slate-800 outline-none font-bold">
-                </div>
-                <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
-                    <button class="bg-slate-500 text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-600 transition" onclick="cerrarConfigRed()">Cerrar</button>
-                    <button class="bg-[#374151] text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-800 transition" onclick="conectarARoomEnLaNube()">Conectar</button>
-                </div>
+            <p id="modal-alerta-texto" class="text-sm font-semibold text-slate-800 mb-6">Mensaje de SigeDoc</p>
+            <button onclick="cerrarAlerta()" class="bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-xs py-2 px-6 rounded-lg transition">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO -->
+    <div id="modal-confirmacion" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 border border-slate-100">
+            <div class="text-center mb-4">
+                <i class="fa-solid fa-circle-question text-blue-500 text-4xl"></i>
+            </div>
+            <p id="modal-confirmacion-texto" class="text-sm font-semibold text-slate-800 text-center mb-6">¿Estás seguro?</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="cerrarConfirmacion(false)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 px-4 rounded-lg transition">
+                    Cancelar
+                </button>
+                <button onclick="cerrarConfirmacion(true)" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-4 rounded-lg transition">
+                    Eliminar
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- CONTENEDORES DE INTERACCIONES FLOTANTES (TOASTS / CONFIRMACIÓN) -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-    <!-- MODAL PARA CREAR NUEVO CURSO -->
-    <div id="modal-nuevo-curso-pantalla" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden">
-            <div class="bg-[#374151] text-white px-5 py-4 flex justify-between items-center">
-                <h3 class="font-bold text-sm uppercase tracking-wide flex items-center gap-2"><i class="fa-solid fa-folder-plus"></i> Crear Nuevo Curso</h3>
-                <i class="fa-solid fa-times cursor-pointer text-lg hover:text-slate-300" onclick="cerrarNuevoCursoModal()"></i>
-            </div>
-            <div class="p-5 flex flex-col gap-4">
-                <p class="text-xs text-slate-500 leading-relaxed">Asigna un identificador o nombre a la libreta del nuevo curso. Se creará una libreta limpia para que ingreses a tus alumnos.</p>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-600 block uppercase mb-1">Nombre del Curso (Ej: 8° AÑO B)</label>
-                    <input type="text" id="input-nuevo-curso-nombre" placeholder="Escribe el nombre del curso..." class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-slate-800 outline-none font-bold">
-                </div>
-                <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
-                    <button class="bg-slate-500 text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-600 transition" onclick="cerrarNuevoCursoModal()">Cancelar</button>
-                    <button class="bg-[#374151] text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-800 transition" onclick="guardarNuevoCursoCreado()">Crear Libreta</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PARA CREAR NUEVO ESTUDIANTE -->
-    <div id="modal-nuevo-estudiante-pantalla" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden">
-            <div class="bg-[#374151] text-white px-5 py-4 flex justify-between items-center">
-                <h3 class="font-bold text-sm uppercase tracking-wide flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Registrar Estudiante</h3>
-                <i class="fa-solid fa-times cursor-pointer text-lg hover:text-slate-300" onclick="cerrarNuevoEstudianteModal()"></i>
-            </div>
-            <div class="p-5 flex flex-col gap-4">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-600 block uppercase mb-1">Nombre Completo del Estudiante</label>
-                    <input type="text" id="input-nuevo-estudiante-nombre" placeholder="Ej: JUAN PEREZ GOMEZ" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-slate-800 outline-none font-bold uppercase">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-600 block uppercase mb-1">Estado de Matrícula</label>
-                    <select id="select-nuevo-estudiante-estado" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-slate-800 outline-none font-bold">
-                        <option value="Regular">Regular</option>
-                        <option value="Irregular">Irregular</option>
-                    </select>
-                </div>
-                <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
-                    <button class="bg-slate-500 text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-600 transition" onclick="cerrarNuevoEstudianteModal()">Cancelar</button>
-                    <button class="bg-[#374151] text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-800 transition" onclick="guardarNuevoEstudiante()">Guardar Estudiante</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE CONFIRMACIÓN CUSTOM -->
-    <div id="modal-confirmacion-custom" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden">
-            <div class="p-5 flex flex-col gap-3">
-                <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2" id="lbl-confirm-titulo"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Confirmación</h4>
-                <p class="text-xs text-slate-600 leading-relaxed" id="lbl-confirm-mensaje">¿Estás seguro de que deseas realizar esta acción?</p>
-                <div class="flex gap-2 justify-end pt-3 border-t border-slate-100">
-                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3.5 py-1.5 rounded transition" id="btn-confirm-cancelar">Cancelar</button>
-                    <button class="bg-[#374151] hover:bg-gray-800 text-white font-bold text-xs px-3.5 py-1.5 rounded transition" id="btn-confirm-aceptar">Aceptar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-<!-- Lógica y Vinculación con la Base de Datos en la Nube de SigeDoc -->
-<script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-    import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-
-    // Validamos de forma segura la existencia de la configuración de red para evitar crashes en GitHub Pages
-    const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'notafacil-quilacura-v3';
-
-    let userLogged = null;
-    let dbCloud = null;
-    let auth = null;
-
-    if (firebaseConfigStr) {
-        try {
-            const firebaseConfig = JSON.parse(firebaseConfigStr);
-            if (firebaseConfig && firebaseConfig.apiKey) {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                dbCloud = getFirestore(app);
-
-                const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                };
-
-                // Escapamos los tags HTML con \x3C y \x3E para evitar problemas de parsing en el servidor
-                initAuth().catch(err => {
-                    console.error("Error de autenticación Firebase:", err);
-                    document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-red-600"\x3E\x3Ci class="fa-solid fa-wifi-slash"\x3E\x3C/i\x3E Offline\x3C/span\x3E';
-                });
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userLogged = user;
-                        document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-slate-600"\x3E\x3Ci class="fa-solid fa-cloud"\x3E\x3C/i\x3E Sincronizado\x3C/span\x3E';
-                        
-                        try {
-                            const docRef = doc(dbCloud, 'artifacts', appId, 'users', user.uid, 'datos', 'completo');
-                            const docSnap = await getDoc(docRef);
-                            if (docSnap.exists()) {
-                                const datosNube = docSnap.data();
-                                window.db = datosNube;
-                                window.guardarPersistencia();
-                                window.iniciarApp();
-                            }
-                        } catch (error) {
-                            console.error("Error cargando backup:", error);
-                        }
-                    }
-                });
-            }
-        } catch (e) {
-            console.error("Error de inicialización de la nube:", e);
-        }
-    } else {
-        // Fallback elegante si el usuario abre el sitio directo o en GitHub Pages
-        setTimeout(() => {
-            const statusEl = document.getElementById('cloud-status');
-            if (statusEl) {
-                statusEl.innerHTML = '\x3Cspan class="text-slate-500"\x3E\x3Ci class="fa-solid fa-wifi-slash"\x3E\x3C/i\x3E Modo Local\x3C/span\x3E';
-            }
-        }, 100);
-    }
-
-    // Guardado robusto que no interfiere si Firebase no está activo
-    window.guardarEnNubeCompleto = async () => {
-        if (!dbCloud || !auth || !userLogged) {
-            mostrarAlerta("La sincronización en la nube no está activa en este servidor. Usando almacenamiento local seguro.", "warning");
-            return;
-        }
-
-        document.getElementById('cloud-status').innerHTML = '\x3Cspan\x3E\x3Ci class="fa-solid fa-spinner fa-spin"\x3E\x3C/i\x3E Guardando...\x3C/span\x3E';
-        try {
-            const docRef = doc(dbCloud, 'artifacts', appId, 'users', userLogged.uid, 'datos', 'completo');
-            await setDoc(docRef, window.db);
-            
-            document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-slate-600"\x3E\x3Ci class="fa-solid fa-cloud"\x3E\x3C/i\x3E Sincronizado\x3C/span\x3E';
-            mostrarAlerta("¡Respaldo guardado con éxito en la nube!", "success");
-        } catch (e) {
-            console.error("Error guardando:", e);
-            document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-red-600"\x3E\x3Ci class="fa-solid fa-wifi-slash"\x3E\x3C/i\x3E Error\x3C/span\x3E';
-            mostrarAlerta("Error al sincronizar con la nube", "error");
-        }
-    };
-</script>
-
-<script>
-    let db = JSON.parse(localStorage.getItem('notafacil_v3_db')) || {
-        cursos: {},
-        cursoActivoKey: "Default",
-        plantillas: []
-    };
-
-    // MIGRACIÓN DE DATOS (Si el usuario ya tenía notas ingresadas en la versión anterior)
-    if (!db.cursos) {
-        let estudiantesPrevios = db.estudiantes || [];
-        let metaPrevia = db.meta || {
-            establecimiento: "ESCUELA PARTICULAR Nº 8 QUILACURA",
-            comuna: "LAUTARO",
-            profesor: "CARLOS GODOY AEDO",
-            curso: "7° AÑO",
-            anio: "2026"
-        };
-        db.cursos = {
-            "Default": {
-                nombre: metaPrevia.curso || "7° AÑO",
-                meta: metaPrevia,
-                estudiantes: estudiantesPrevios
-            }
-        };
-        db.cursoActivoKey = "Default";
-        delete db.estudiantes;
-        delete db.meta;
-    }
-
-    window.db = db;
-
-    // Obtener datos del curso activo actual
-    function getCursoActivo() {
-        if (!db.cursos[db.cursoActivoKey]) {
-            // Validar que siempre exista al menos un curso base
-            let keys = Object.keys(db.cursos);
-            if (keys.length > 0) {
-                db.cursoActivoKey = keys[0];
-            } else {
-                db.cursos["Default"] = {
-                    nombre: "7° AÑO",
-                    meta: {
-                        establecimiento: "ESCUELA PARTICULAR Nº 8 QUILACURA",
-                        comuna: "LAUTARO",
-                        profesor: "CARLOS GODOY AEDO",
-                        curso: "7° AÑO",
-                        anio: "2026"
-                    },
-                    estudiantes: []
-                };
-                db.cursoActivoKey = "Default";
-            }
-        }
-        return db.cursos[db.cursoActivoKey];
-    }
-
-    let estudianteIdx = -1;
-    let colsS1 = 4;
-    let colsS2 = 4;
-    let busquedaTerm = '';
-
-    const listaConceptosDefecto = [
-        "1.- Es capaz de expresar sus opiniones y sentimiento.",
-        "2.- Acepta la opinión de sus compañeros aunque sea diferente a la propia.",
-        "3.- Asume responsablemente sus deberes, cumpliendo con las exigencias.",
-        "4.- Establece relaciones de amistad y respeto con todos sus pares y profesores.",
-        "5.- Cuida su entorno.",
-        "6.- Se preocupa de su presentación personal e higiene.",
-        "7.- Valora y respeta la cultura mapuche."
-    ];
-
-    const opcionesCalificacion = ["-", "S", "F", "R/V", "N", "N/O"];
-
-    const asignaturasOficialesMineduc = [
-        { nombre: 'LENGUA Y LITERATURA', notasS1: [], notasS2: [] },
-        { nombre: 'IDIOMA EXTRANJERO: INGLÉS', notasS1: [], notasS2: [] },
-        { nombre: 'MATEMÁTICA', notasS1: [], notasS2: [] },
-        { font_awesome: 'CIENCIAS NATURALES', nombre: 'CIENCIAS NATURALES', notasS1: [], notasS2: [] },
-        { nombre: 'HISTORIA, GEOGRAFÍA Y CS.', notasS1: [], notasS2: [] },
-        { nombre: 'TECNOLOGÍA', notasS1: [], notasS2: [] },
-        { nombre: 'MÚSICA', notasS1: [], notasS2: [] },
-        { nombre: 'ARTES VISUALES', notasS1: [], notasS2: [] },
-        { nombre: 'EDUCACIÓN FÍSICA Y SALUD', notasS1: [], notasS2: [] },
-        { nombre: 'LENGUA INDÍGENA', notasS1: [], notasS2: [] }
-    ];
-
-    const plantillasPorDefecto = [
-        {
-            nombrePlantilla: "7° AÑO - CARLOS GODOY AEDO (Oficial)",
-            meta: {
-                establecimiento: "ESCUELA PARTICULAR Nº 8 QUILACURA",
-                comuna: "LAUTARO",
-                profesor: "CARLOS GODOY AEDO",
-                curso: "7° AÑO",
-                anio: "2026"
-            },
-            estudiantes: [
-                {
-                    nombre: "AMARAL JOFRE",
-                    estado: "Regular",
-                    asignaturas: [
-                        { nombre: 'LENGUA Y LITERATURA', notasS1: [5.2, 6.5], notasS2: [] },
-                        { nombre: 'IDIOMA EXTRANJERO: INGLÉS', notasS1: [], notasS2: [] },
-                        { nombre: 'MATEMÁTICA', notasS1: [], notasS2: [] },
-                        { nombre: 'CIENCIAS NATURALES', notasS1: [], notasS2: [] },
-                        { nombre: 'HISTORIA, GEOGRAFÍA Y CS.', notasS1: [], notasS2: [] },
-                        { font_awesome: 'TECNOLOGÍA', nombre: 'TECNOLOGÍA', notasS1: [], notasS2: [] },
-                        { nombre: 'MÚSICA', notasS1: [], notasS2: [] },
-                        { nombre: 'ARTES VISUALES', notasS1: [], notasS2: [] },
-                        { nombre: 'EDUCACIÓN FÍSICA Y SALUD', notasS1: [], notasS2: [] },
-                        { nombre: 'LENGUA INDÍGENA', notasS1: [], notasS2: [] }
-                    ],
-                    conceptos: [
-                        { descriptor: "1.- Es capaz de expresar sus opiniones y sentimiento.", s1: "S", s2: "-" },
-                        { descriptor: "2.- Acepta la opinión de sus compañeros aunque sea diferente a la propia.", s1: "F", s2: "-" },
-                        { descriptor: "3.- Asume responsablemente sus deberes, cumpliendo con las exigencias.", s1: "S", s2: "-" },
-                        { descriptor: "4.- Establece relaciones de amistad y respeto con todos sus pares y profesores.", s1: "S", s2: "-" },
-                        { descriptor: "5.- Cuida su entorno.", s1: "S", s2: "-" },
-                        { descriptor: "6.- Se preocupa de su presentación personal e higiene.", s1: "S", s2: "-" },
-                        { descriptor: "7.- Valora y respeta la cultura mapuche.", s1: "S", s2: "-" }
-                    ],
-                    diasTrabajados: 100,
-                    diasAsistidos: 98
-                }
-            ]
-        }
-    ];
-
-    function iniciarApp() {
-        if(!db.plantillas || db.plantillas.length === 0) {
-            db.plantillas = plantillasPorDefecto;
-            guardarPersistencia();
-        }
-
-        let cursoActivo = getCursoActivo();
-
-        // Si es la primera vez o cambiamos de curso, ajustar el estudiante seleccionado por defecto
-        if (estudianteIdx === -1 || estudianteIdx >= cursoActivo.estudiantes.length) {
-            estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
-        }
-
-        // Cargar Metadatos del curso en inputs
-        document.getElementById('meta-establecimiento').value = cursoActivo.meta.establecimiento || '';
-        document.getElementById('meta-comuna').value = cursoActivo.meta.comuna || '';
-        document.getElementById('meta-profesor').value = cursoActivo.meta.profesor || '';
-        document.getElementById('meta-curso').value = cursoActivo.meta.curso || '';
-        document.getElementById('meta-anio').value = cursoActivo.meta.anio || '';
-
-        // Iniciales del docente
-        const nombresProf = (cursoActivo.meta.profesor || 'CARLOS GODOY').split(' ');
-        let inicialesProf = "CG";
-        if(nombresProf.length >= 2 && nombresProf[0] && nombresProf[1]) {
-            inicialesProf = (nombresProf[0][0] + nombresProf[1][0]).toUpperCase();
-        } else if(nombresProf[0]) {
-            inicialesProf = nombresProf[0].slice(0,2).toUpperCase();
-        }
-        document.getElementById('lbl-avatar-iniciales').innerText = inicialesProf;
-
-        renderCursosTabs();
-        renderEstudiantes();
-        renderEvaluacion();
-        renderSelectorPlantillas();
-    }
-
-    window.iniciarApp = iniciarApp;
-
-    function renderCursosTabs() {
-        const container = document.getElementById('tabs-cursos-contenedor');
-        container.innerHTML = '';
-
-        // Renderizar un botón de pestaña para cada curso existente
-        Object.keys(db.cursos).forEach(key => {
-            const curso = db.cursos[key];
-            const active = (key === db.cursoActivoKey);
-            
-            const tab = document.createElement('div');
-            tab.className = `flex items-center gap-2 shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition shadow-sm border ${
-                active 
-                ? 'bg-slate-700 text-white border-slate-700' 
-                : 'bg-white hover:bg-slate-200 text-slate-700 border-slate-200'
-            }`;
-            
-            tab.innerHTML = `
-                <span onclick="cambiarCursoSeleccionado('${key}')">${curso.nombre}</span>
-                ${Object.keys(db.cursos).length > 1 ? `
-                    <i class="fa-solid fa-times hover:text-red-400 text-[10px] ml-1" onclick="event.stopPropagation(); eliminarCursoPorKey('${key}')" title="Eliminar Curso"></i>
-                ` : ''}
-            `;
-            container.appendChild(tab);
-        });
-
-        // Botón de rápido acceso para crear un curso nuevo al final de las pestañas
-        const addTab = document.createElement('button');
-        addTab.className = "shrink-0 bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center border border-slate-300 shadow-sm";
-        addTab.innerHTML = '<i class="fa-solid fa-plus"></i>';
-        addTab.title = "Crear Nuevo Curso";
-        addTab.onclick = abrirNuevoCursoModal;
-        container.appendChild(addTab);
-    }
-
-    function cambiarCursoSeleccionado(key) {
-        db.cursoActivoKey = key;
-        let curso = getCursoActivo();
-        estudianteIdx = curso.estudiantes.length > 0 ? 0 : -1;
-        guardarPersistencia();
-        iniciarApp();
-        mostrarAlerta(`Cambiado al curso: ${curso.nombre}`, "success");
-    }
-
-    function abrirNuevoCursoModal() {
-        document.getElementById('modal-nuevo-curso-pantalla').style.display = 'flex';
-        document.getElementById('input-nuevo-curso-nombre').value = '';
-    }
-
-    function cerrarNuevoCursoModal() {
-        document.getElementById('modal-nuevo-curso-pantalla').style.display = 'none';
-    }
-
-    function abrirNuevoEstudianteModal() {
-        document.getElementById('modal-nuevo-estudiante-pantalla').style.display = 'flex';
-        document.getElementById('input-nuevo-estudiante-nombre').value = '';
-        document.getElementById('input-nuevo-estudiante-nombre').focus();
-    }
-
-    function cerrarNuevoEstudianteModal() {
-        document.getElementById('modal-nuevo-estudiante-pantalla').style.display = 'none';
-    }
-
-    function guardarNuevoEstudiante() {
-        const nombreVal = document.getElementById('input-nuevo-estudiante-nombre').value.trim();
-        const estadoVal = document.getElementById('select-nuevo-estudiante-estado').value;
-
-        if (!nombreVal) {
-            mostrarAlerta("Ingresa el nombre del estudiante", "warning");
-            return;
-        }
-
-        let cursoActivo = getCursoActivo();
-        cursoActivo.estudiantes.push({
-            nombre: nombreVal.toUpperCase(),
-            estado: estadoVal,
-            asignaturas: JSON.parse(JSON.stringify(asignaturasOficialesMineduc)),
-            conceptos: listaConceptosDefecto.map(c => ({ descriptor: c, s1: '-', s2: '-' })),
-            diasTrabajados: 100,
-            diasAsistidos: 95
-        });
-
-        estudianteIdx = cursoActivo.estudiantes.length - 1;
-        guardarPersistencia();
-        cerrarNuevoEstudianteModal();
-        iniciarApp();
-        mostrarAlerta("Estudiante registrado con éxito", "success");
-    }
-
-    function guardarNuevoCursoCreado() {
-        const nombreVal = document.getElementById('input-nuevo-curso-nombre').value.trim();
-        if (!nombreVal) {
-            mostrarAlerta("Ingresa un nombre para el curso", "warning");
-            return;
-        }
-
-        const cursoActivo = getCursoActivo();
-        const key = "curso_" + Date.now();
-
-        // Crear curso nuevo heredando los metadatos institucionales del curso anterior para ahorrar tiempo
-        db.cursos[key] = {
-            nombre: nombreVal.toUpperCase(),
-            meta: {
-                establecimiento: cursoActivo.meta.establecimiento || "ESCUELA PARTICULAR Nº 8 QUILACURA",
-                comuna: cursoActivo.meta.comuna || "LAUTARO",
-                profesor: cursoActivo.meta.profesor || "CARLOS GODOY AEDO",
-                curso: nombreVal.toUpperCase(),
-                anio: cursoActivo.meta.anio || "2026"
-            },
-            estudiantes: []
-        };
-
-        db.cursoActivoKey = key;
-        estudianteIdx = -1;
-
-        guardarPersistencia();
-        cerrarNuevoCursoModal();
-        iniciarApp();
-        mostrarAlerta(`Curso "${nombreVal.toUpperCase()}" creado con éxito`, "success");
-    }
-
-    function eliminarCursoPorKey(key) {
-        const curso = db.cursos[key];
-        if (!curso) return;
-
-        mostrarConfirmacion(`¿Deseas eliminar completamente el curso "${curso.nombre}" y todos sus alumnos inscritos?`, () => {
-            delete db.cursos[key];
-            
-            // Si eliminamos el curso activo, re-apuntar a otro curso que quede libre
-            if (db.cursoActivoKey === key) {
-                db.cursoActivoKey = Object.keys(db.cursos)[0];
-                estudianteIdx = -1;
-            }
-            guardarPersistencia();
-            iniciarApp();
-            mostrarAlerta("Curso removido correctamente", "info");
-        });
-    }
-
-    function eliminarCursoActual() {
-        let keys = Object.keys(db.cursos);
-        if (keys.length <= 1) {
-            mostrarAlerta("No puedes eliminar el único curso que te queda", "warning");
-            return;
-        }
-
-        const cursoActivo = getCursoActivo();
-        eliminarCursoPorKey(db.cursoActivoKey);
-    }
-
-    function guardarMeta() {
-        let cursoActivo = getCursoActivo();
-        cursoActivo.meta.establecimiento = document.getElementById('meta-establecimiento').value;
-        cursoActivo.meta.comuna = document.getElementById('meta-comuna').value;
-        cursoActivo.meta.profesor = document.getElementById('meta-profesor').value;
-        cursoActivo.meta.curso = document.getElementById('meta-curso').value;
-        cursoActivo.meta.anio = document.getElementById('meta-anio').value;
-
-        // Actualizar el nombre en la pestaña superior
-        cursoActivo.nombre = cursoActivo.meta.curso.toUpperCase() || "CURSO SIN NOMBRE";
-
-        guardarPersistencia();
-        renderCursosTabs();
-    }
-
-    function guardarPersistencia() {
-        localStorage.setItem('notafacil_v3_db', JSON.stringify(db));
-    }
-    window.guardarPersistencia = guardarPersistencia;
-
-    function renderSelectorPlantillas() {
-        const select = document.getElementById('select-plantillas');
-        select.innerHTML = '<option value="">-- Carga Rápida Curso --</option>';
-        
-        db.plantillas.forEach((p, index) => {
-            const opt = document.createElement('option');
-            opt.value = index;
-            opt.innerText = p.nombrePlantilla;
-            select.appendChild(opt);
-        });
-    }
-
-    function cargarPlantillaSeleccionada() {
-        const select = document.getElementById('select-plantillas');
-        const idx = select.value;
-        if(idx === "") return;
-
-        mostrarConfirmacion(`¿Deseas cargar la plantilla "${db.plantillas[idx].nombrePlantilla}"?\nEsto reemplazará los datos del curso actual.`, () => {
-            const plantilla = db.plantillas[idx];
-            let cursoActivo = getCursoActivo();
-            
-            cursoActivo.meta.establecimiento = plantilla.meta.establecimiento;
-            cursoActivo.meta.comuna = plantilla.meta.comuna;
-            cursoActivo.meta.profesor = plantilla.meta.profesor;
-            cursoActivo.meta.curso = plantilla.meta.curso;
-            cursoActivo.meta.anio = plantilla.meta.anio;
-            cursoActivo.nombre = plantilla.meta.curso.toUpperCase();
-            
-            cursoActivo.estudiantes = JSON.parse(JSON.stringify(plantilla.estudiantes));
-            estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
-
-            guardarPersistencia();
-            iniciarApp();
-            mostrarAlerta("Plantilla importada en curso activo", "success");
-        });
-        select.value = "";
-    }
-
-    function guardarCursoActualComoPlantilla() {
-        let cursoActivo = getCursoActivo();
-        const cursoNombre = cursoActivo.meta.curso.trim() || "CURSO NUEVO";
-        const profNombre = cursoActivo.meta.profesor.trim() || "SIN DOCENTE";
-        const templateName = `${cursoNombre.toUpperCase()} - ${profNombre.toUpperCase()} (${new Date().toLocaleDateString()})`;
-
-        const nuevaPlantilla = {
-            nombrePlantilla: templateName,
-            meta: JSON.parse(JSON.stringify(cursoActivo.meta)),
-            estudiantes: JSON.parse(JSON.stringify(cursoActivo.estudiantes))
-        };
-
-        db.plantillas.push(nuevaPlantilla);
-        guardarPersistencia();
-        renderSelectorPlantillas();
-        mostrarAlerta(`Curso "${templateName}" guardado como plantilla`, "success");
-    }
-
-    function registrarEstudianteRapido() {
-        const input = document.getElementById('input-busqueda-estudiante');
-        if(!input.value.trim()) {
-            mostrarAlerta("Escribe el nombre del estudiante para ingresarlo", "warning");
-            return;
-        }
-
-        let cursoActivo = getCursoActivo();
-        cursoActivo.estudiantes.push({
-            nombre: input.value.trim().toUpperCase(),
-            estado: 'Regular',
-            asignaturas: JSON.parse(JSON.stringify(asignaturasOficialesMineduc)),
-            conceptos: listaConceptosDefecto.map(c => ({ descriptor: c, s1: '-', s2: '-' })),
-            diasTrabajados: 100,
-            diasAsistidos: 95
-        });
-
-        estudianteIdx = cursoActivo.estudiantes.length - 1;
-        input.value = '';
-        guardarPersistencia();
-        renderEstudiantes();
-        renderEvaluacion();
-        mostrarAlerta("Estudiante añadido", "success");
-    }
-
-    function filtrarEstudiantesListado() {
-        busquedaTerm = document.getElementById('input-busqueda-estudiante').value.toLowerCase();
-        renderEstudiantes();
-    }
-
-    function renderEstudiantes() {
-        const listDiv = document.getElementById('lista-estudiantes');
-        listDiv.innerHTML = '';
-
-        let cursoActivo = getCursoActivo();
-
-        const estudiantesFiltrados = cursoActivo.estudiantes.map((est, idx) => ({ est, originalIdx: idx }))
-            .filter(item => item.est.nombre.toLowerCase().includes(busquedaTerm));
-
-        if(estudiantesFiltrados.length === 0 && busquedaTerm.trim().length > 0) {
-            listDiv.innerHTML = `
-                <div class="p-4 text-center">
-                    <p class="text-xs text-slate-400 mb-2">"${busquedaTerm.toUpperCase()}" no existe</p>
-                    <button class="bg-[#374151] hover:bg-gray-800 text-white font-bold text-[10px] px-3 py-1.5 rounded transition" onclick="registrarEstudianteRapido()"><i class="fa-solid fa-user-plus"></i> Registrar en Curso</button>
-                </div>
-            `;
-            return;
-        } else if (estudiantesFiltrados.length === 0) {
-            listDiv.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Sin estudiantes registrados en este curso</div>`;
-            return;
-        }
-
-        estudiantesFiltrados.forEach(item => {
-            const est = item.est;
-            const idx = item.originalIdx;
-            
-            const nombres = est.nombre.split(' ');
-            let iniciales = "ES";
-            if(nombres.length >= 2 && nombres[0] && nombres[1]) {
-                iniciales = (nombres[0][0] + nombres[1][0]).toUpperCase();
-            } else if(nombres[0]) {
-                iniciales = nombres[0].slice(0,2).toUpperCase();
-            }
-
-            // Calcular promedio general
-            let promTotal = "S/N";
-            let sumProms = 0, cantProms = 0;
-            est.asignaturas.forEach(ramo => {
-                let promS1 = calcularSemestrePromedio(ramo.notasS1 || []);
-                let promS2 = calcularSemestrePromedio(ramo.notasS2 || []);
-                if(promS1 !== "-" && promS2 !== "-") {
-                    let p1 = parseFloat(promS1.replace(',','.'));
-                    let p2 = parseFloat(promS2.replace(',','.'));
-                    sumProms += aproximarNota((p1 + p2) / 2);
-                    cantProms++;
-                }
-            });
-            if(cantProms > 0) {
-                promTotal = (sumProms / cantProms).toFixed(1).replace('.', ',');
-            }
-
-            const tab = document.createElement('div');
-            tab.className = `chat-item ${idx === estudianteIdx ? 'active' : ''}`;
-            tab.innerHTML = `
-                <div class="student-avatar" style="background-color: ${idx === estudianteIdx ? 'var(--wa-teal)' : '#64748b'};">${iniciales}</div>
-                <div class="chat-info">
-                    <div class="chat-info-top">
-                        <div class="chat-name truncate max-w-[150px]" title="${est.nombre}">${est.nombre}</div>
-                        <div class="chat-time">Prom: ${promTotal}</div>
-                    </div>
-                    <div class="chat-message-preview">
-                        <span>Estado: ${est.estado}</span>
-                        <span class="text-[9px] font-bold text-[#374151]">${est.estado === 'Regular' ? '✔' : '⚠'}</span>
-                    </div>
-                </div>
-            `;
-            tab.onclick = () => {
-                mouseClickStudent(idx);
-            };
-            listDiv.appendChild(tab);
-        });
-    }
-
-    function mouseClickStudent(idx) {
-        estudianteIdx = idx;
-        renderEstudiantes();
-        renderEvaluacion();
-    }
-
-    function renderEvaluacion() {
-        const welcome = document.getElementById('welcome-screen-wa');
-        const activeChat = document.getElementById('active-chat-wa');
-
-        let cursoActivo = getCursoActivo();
-
-        if(estudianteIdx === -1 || !cursoActivo.estudiantes[estudianteIdx]) {
-            welcome.style.display = 'flex';
-            activeChat.style.display = 'none';
-            return;
-        }
-
-        welcome.style.display = 'none';
-        activeChat.style.display = 'flex';
-
-        const est = cursoActivo.estudiantes[estudianteIdx];
-        document.getElementById('lbl-nombre-estudiante-activo').innerText = est.nombre;
-        document.getElementById('estado-estudiante-activo').value = est.estado;
-        document.getElementById('asist-trabajados').value = est.diasTrabajados || 100;
-        document.getElementById('asist-asistidos').value = est.diasAsistidos || 95;
-
-        // Avatar del chat
-        const nombres = est.nombre.split(' ');
-        let iniciales = "ES";
-        if(nombres.length >= 2 && nombres[0] && nombres[1]) {
-            iniciales = (nombres[0][0] + nombres[1][0]).toUpperCase();
-        } else if(nombres[0]) {
-            iniciales = nombres[0].slice(0, 2).toUpperCase();
-        }
-        document.getElementById('lbl-avatar-estudiante-activo').innerText = iniciales;
-
-        // Renderizar Encabezados Dinámicos de Notas
-        document.getElementById('header-s1').colSpan = colsS1;
-        document.getElementById('header-s2').colSpan = colsS2;
-
-        let subHeadersHtml = '';
-        for(let i=1; i<=colsS1; i++) subHeadersHtml += `<th class="p-1 text-center w-8 text-[10px]">${i}</th>`;
-        for(let i=1; i<=colsS2; i++) subHeadersHtml += `<th class="p-1 text-center w-8 text-[10px]">${i}</th>`;
-        document.getElementById('subheaders-notas-fila').innerHTML = subHeadersHtml;
-
-        // Renderizar Cuerpo de Tabla de Notas
-        const tbodyNotas = document.getElementById('tabla-notas-cuerpo');
-        tbodyNotas.innerHTML = '';
-
-        est.asignaturas.forEach((ramo, rIdx) => {
-            const tr = document.createElement('tr');
-            
-            let rowHTML = `<td class="text-left font-bold pl-2 text-xs border border-slate-300 bg-slate-50">${ramo.nombre}</td>`;
-            
-            // Semestre 1 inputs
-            for(let i=0; i<colsS1; i++) {
-                let nVal = ramo.notasS1 ? (ramo.notasS1[i] || '') : '';
-                rowHTML += `<td class="p-0 border border-slate-300"><input type="text" class="input-nota w-full text-center text-xs font-semibold outline-none py-1" value="${nVal}" onchange="editarNota(${rIdx}, 's1', ${i}, this.value)"></td>`;
-            }
-            let promS1 = calcularSemestrePromedio(ramo.notasS1 || []);
-            rowHTML += `<td class="font-bold bg-slate-100 text-slate-800 text-center border border-slate-300 text-xs">${promS1}</td>`;
-
-            // Semestre 2 inputs
-            for(let i=0; i<colsS2; i++) {
-                let nVal = ramo.notasS2 ? (ramo.notasS2[i] || '') : '';
-                rowHTML += `<td class="p-0 border border-slate-300"><input type="text" class="input-nota w-full text-center text-xs font-semibold outline-none py-1" value="${nVal}" onchange="editarNota(${rIdx}, 's2', ${i}, this.value)"></td>`;
-            }
-            let promS2 = calcularSemestrePromedio(ramo.notasS2 || []);
-            rowHTML += `<td class="font-bold bg-slate-100 text-slate-800 text-center border border-slate-300 text-xs">${promS2}</td>`;
-
-            // Promedio Anual aproximado
-            let promAnual = "-";
-            if(promS1 !== "-" && promS2 !== "-") {
-                let p1 = parseFloat(promS1.replace(',','.'));
-                let p2 = parseFloat(promS2.replace(',','.'));
-                promAnual = aproximarNota((p1 + p2) / 2).toFixed(1).replace('.',',');
-            }
-            rowHTML += `<td class="font-bold bg-slate-200 text-slate-900 text-center border border-slate-300 text-xs">${promAnual}</td>`;
-            rowHTML += `<td class="no-print p-1 text-center border border-slate-300"><button class="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-0.5 rounded text-[10px]" onclick="eliminarAsignatura(${rIdx})">×</button></td>`;
-            
-            tr.innerHTML = rowHTML;
-            tbodyNotas.appendChild(tr);
-        });
-
-        // Renderizar Conceptos
-        const tbodyConceptos = document.getElementById('tabla-conceptos-cuerpo');
-        tbodyConceptos.innerHTML = '';
-
-        if(!est.conceptos) est.conceptos = listaConceptosDefecto.map(c => ({ descriptor: c, s1: '-', s2: '-' }));
-
-        est.conceptos.forEach((c, cIdx) => {
-            const tr = document.createElement('tr');
-            
-            let s1Select = `<select class="border border-slate-300 rounded px-1 py-0.5 text-xs font-bold text-center bg-white outline-none focus:border-slate-800 cursor-pointer" onchange="editarConcepto(${cIdx}, 's1', this.value)">`;
-            s1Select += opcionesCalificacion.map(opt => `<option value="${opt}" ${c.s1 === opt ? 'selected' : ''}>${opt}</option>`).join('');
-            s1Select += `</select>`;
-
-            let s2Select = `<select class="border border-slate-300 rounded px-1 py-0.5 text-xs font-bold text-center bg-white outline-none focus:border-slate-800 cursor-pointer" onchange="editarConcepto(${cIdx}, 's2', this.value)">`;
-            s2Select += opcionesCalificacion.map(opt => `<option value="${opt}" ${c.s2 === opt ? 'selected' : ''}>${opt}</option>`).join('');
-            s2Select += `</select>`;
-
-            tr.innerHTML = `
-                <td class="text-left pl-2 text-xs border border-slate-300">${c.descriptor}</td>
-                <td class="border border-slate-300 p-1 text-center">${s1Select}</td>
-                <td class="border border-slate-300 p-1 text-center">${s2Select}</td>
-            `;
-            tbodyConceptos.appendChild(tr);
-        });
-
-        calcularAsistencia();
-    }
-
-    function editarNota(rIdx, semestre, nIdx, val) {
-        let notaFormateada = val.replace(',', '.');
-        let notaNum = parseFloat(notaFormateada);
-        
-        if(isNaN(notaNum) || notaNum < 1.0 || notaNum > 7.0) {
-            notaNum = '';
-        }
-
-        let cursoActivo = getCursoActivo();
-        const est = cursoActivo.estudiantes[estudianteIdx];
-        if(!est.asignaturas[rIdx].notasS1) est.asignaturas[rIdx].notasS1 = [];
-        if(!est.asignaturas[rIdx].notasS2) est.asignaturas[rIdx].notasS2 = [];
-
-        if(semestre === 's1') {
-            est.asignaturas[rIdx].notasS1[nIdx] = notaNum;
-        } else {
-            est.asignaturas[rIdx].notasS2[nIdx] = notaNum;
-        }
-
-        guardarPersistencia();
-        renderEvaluacion();
-        renderEstudiantes();
-    }
-
-    function calcularSemestrePromedio(notasArray) {
-        let validas = notasArray.filter(n => n !== null && n !== undefined && n !== '');
-        if(validas.length === 0) return "-";
-        let suma = validas.reduce((a, b) => a + b, 0);
-        let promedio = suma / validas.length;
-        return aproximarNota(promedio).toFixed(1).replace('.',',');
-    }
-
-    function aproximarNota(nota) {
-        let entero = Math.floor(nota);
-        let decimal = nota - entero;
-        if(decimal >= 0.5) {
-            return entero + 1.0;
-        } else {
-            return entero + 0.0;
-        }
-    }
-
-    function ajustarColumnas(sem, delta) {
-        if(sem === 's1' && colsS1 + delta >= 1) colsS1 += delta;
-        if(sem === 's2' && colsS2 + delta >= 1) colsS2 += delta;
-        renderEvaluacion();
-    }
-
-    function chequearEnterAsignatura(e) {
-        if (e.key === 'Enter') {
-            agregarAsignaturaDesdeInput();
-        }
-    }
-
-    function agregarAsignaturaDesdeInput() {
-        const input = document.getElementById('input-nueva-asignatura-chat');
-        let cursoActivo = getCursoActivo();
-        if(!input.value.trim() || estudianteIdx === -1) return;
-
-        cursoActivo.estudiantes[estudianteIdx].asignaturas.push({
-            nombre: input.value.trim().toUpperCase(),
-            notasS1: [],
-            notasS2: []
-        });
-
-        input.value = '';
-        guardarPersistencia();
-        renderEvaluacion();
-        mostrarAlerta("Asignatura agregada al final de la libreta", "success");
-        
-        const container = document.getElementById('chat-messages-container');
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function eliminarAsignatura(rIdx) {
-        let cursoActivo = getCursoActivo();
-        mostrarConfirmacion("¿Deseas remover definitivamente esta asignatura?", () => {
-            cursoActivo.estudiantes[estudianteIdx].asignaturas.splice(rIdx, 1);
-            guardarPersistencia();
-            renderEvaluacion();
-            renderEstudiantes();
-            mostrarAlerta("Asignatura removida", "info");
-        });
-    }
-
-    function editarConcepto(cIdx, sem, val) {
-        let cursoActivo = getCursoActivo();
-        cursoActivo.estudiantes[estudianteIdx].conceptos[cIdx][sem] = val;
-        guardarPersistencia();
-    }
-
-    function calcularAsistencia() {
-        let cursoActivo = getCursoActivo();
-        if(estudianteIdx === -1 || !cursoActivo.estudiantes[estudianteIdx]) return;
-        const est = cursoActivo.estudiantes[estudianteIdx];
-        const t = parseFloat(document.getElementById('asist-trabajados').value) || 0;
-        const a = parseFloat(document.getElementById('asist-asistidos').value) || 0;
-
-        est.diasTrabajados = t;
-        est.diasAsistidos = a;
-        guardarPersistencia();
-
-        if(t > 0) {
-            document.getElementById('lbl-porcentaje').innerText = ((a / t) * 100).toFixed(1);
-        } else {
-            document.getElementById('lbl-porcentaje').innerText = "0.0";
-        }
-    }
-
-    function cambiarEstadoEstudiante() {
-        let cursoActivo = getCursoActivo();
-        if(estudianteIdx === -1) return;
-        cursoActivo.estudiantes[estudianteIdx].estado = document.getElementById('estado-estudiante-activo').value;
-        guardarPersistencia();
-        renderEstudiantes();
-    }
-
-    function quitarEstudianteActivo() {
-        let cursoActivo = getCursoActivo();
-        if(estudianteIdx === -1) return;
-        mostrarConfirmacion("¿Estás seguro de que deseas eliminar permanentemente a este estudiante de SigeDoc?", () => {
-            cursoActivo.estudiantes.splice(estudianteIdx, 1);
-            estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
-            guardarPersistencia();
-            renderEstudiantes();
-            renderEvaluacion();
-            mostrarAlerta("Estudiante eliminado", "info");
-        });
-    }
-
-    function subirLogo(e) {
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            localStorage.setItem('notafacil_v3_logo', ev.target.result);
-            mostrarAlerta("Logotipo escolar actualizado para impresión", "success");
-        };
-        reader.readAsDataURL(e.target.files[0]);
-    }
-
-    function compilarInformeHTML(estudiante) {
-        let cursoActivo = getCursoActivo();
-        let colsHtmlS1 = '';
-        for(let i=1; i<=colsS1; i++) colsHtmlS1 += `<th style="width: 4%;">${i}</th>`;
-        let colsHtmlS2 = '';
-        for(let i=1; i<=colsS2; i++) colsHtmlS2 += `<th style="width: 4%;">${i}</th>`;
-
-        let filasAsignaturas = '';
-        estudiante.asignaturas.forEach(ramo => {
-            let notasS1Cells = '';
-            for(let i=0; i<colsS1; i++) {
-                let val = ramo.notasS1 ? (ramo.notasS1[i] || '') : '';
-                notasS1Cells += `<td>${val}</td>`;
-            }
-            let promS1 = calcularSemestrePromedio(ramo.notasS1 || []);
-
-            let notasS2Cells = '';
-            for(let i=0; i<colsS2; i++) {
-                let val = ramo.notasS2 ? (ramo.notasS2[i] || '') : '';
-                notasS2Cells += `<td>${val}</td>`;
-            }
-            let promS2 = calcularSemestrePromedio(ramo.notasS2 || []);
-
-            let promAnual = "-";
-            if(promS1 !== "-" && promS2 !== "-") {
-                let p1 = parseFloat(promS1.replace(',','.'));
-                let p2 = parseFloat(promS2.replace(',','.'));
-                promAnual = aproximarNota((p1 + p2) / 2).toFixed(1).replace('.',',');
-            }
-
-            filasAsignaturas += `
-                <tr>
-                    <td style="text-align: left; font-weight: bold; padding-left: 10px;">${ramo.nombre}</td>
-                    ${notasS1Cells}
-                    <td style="font-weight: bold; background: #f2f2f2;">${promS1}</td>
-                    ${notasS2Cells}
-                    <td style="font-weight: bold; background: #f2f2f2;">${promS2}</td>
-                    <td style="font-weight: bold; background: #f3f4f6; color: #111827;">${promAnual}</td>
-                </tr>
-            `;
-        });
-
-        let filasConceptos = '';
-        estudiante.conceptos.forEach(c => {
-            filasConceptos += `
-                <tr>
-                    <td style="text-align: left; padding-left: 10px;">${c.descriptor}</td>
-                    <td style="font-weight: bold;">${c.s1}</td>
-                    <td style="font-weight: bold;">${c.s2}</td>
-                </tr>
-            `;
-        });
-
-        const logoGuardado = localStorage.getItem('notafacil_v3_logo') || 'https://via.placeholder.com/110?text=Logo+Escuela';
-        const porcentajeAsistencia = estudiante.diasTrabajados > 0 ? ((estudiante.diasAsistidos / estudiante.diasTrabajados) * 100).toFixed(1) : '0.0';
-
-        return `
-            <div class="hoja-informe">
-                <div class="print-header-grid">
-                    <div>
-                        <img src="${logoGuardado}" style="width: 90px; height: 90px; object-fit: contain;">
-                    </div>
-                    <div style="text-align: center;">
-                        <h1 style="font-size: 18px; font-weight: 800; text-transform: uppercase;">${cursoActivo.meta.establecimiento}</h1>
-                        <h2 style="font-size: 13px; color: #444; margin-top: 2px;">LAUTARO</h2>
-                        <div style="font-size: 11px; font-weight: bold; margin-top: 5px; text-transform: uppercase; border: 1px solid #000; display: inline-block; padding: 3px 12px; background: #f2f2f2;">
-                            INFORME OFICIAL DE NOTAS - AÑO ESCOLAR ${cursoActivo.meta.anio}
-                        </div>
-                    </div>
-                    <div style="text-align: right; font-size: 9px; line-height: 1.3; font-weight: bold;">
-                        UTP OFICIAL<br>
-                        SigeDoc Web v3.0
-                    </div>
-                </div>
-
-                <table class="print-school-meta">
-                    <tr>
-                        <td class="lbl-meta">ESTUDIANTE:</td>
-                        <td style="font-weight: bold; font-size: 12px;">${estudiante.nombre}</td>
-                        <td class="lbl-meta">CURSO:</td>
-                        <td style="font-weight: bold;">${cursoActivo.meta.curso}</td>
-                    </tr>
-                    <tr>
-                        <td class="lbl-meta">PROFESOR JEFE:</td>
-                        <td>${cursoActivo.meta.profesor}</td>
-                        <td class="lbl-meta">ESTADO:</td>
-                        <td style="font-weight: bold;">${estudiante.estado}</td>
-                    </tr>
-                </table>
-
-                <table class="bordered-print">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" style="width: 30%;">Asignaturas</th>
-                            <th colspan="${colsS1}">Primer Semestre</th>
-                            <th rowspan="2" style="width: 7%;">S1</th>
-                            <th colspan="${colsS2}">Segundo Semestre</th>
-                            <th rowspan="2" style="width: 7%;">S2</th>
-                            <th rowspan="2" style="width: 8%;">Prom. Anual</th>
-                        </tr>
-                        <tr>
-                            ${colsHtmlS1}
-                            ${colsHtmlS2}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filasAsignaturas}
-                    </tbody>
-                </table>
-
-                <table class="bordered-print" style="margin-top: 25px;">
-                    <thead>
-                        <tr>
-                            <th style="text-align: left; padding-left: 10px; width: 60%;">Conceptos / Indicadores de Desarrollo</th>
-                            <th style="width: 20%;">I Semestre</th>
-                            <th style="width: 20%;">II Semestre</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filasConceptos}
-                    </tbody>
-                </table>
-
-                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start; margin-top: 20px; page-break-inside: avoid;">
-                    <table class="bordered-print">
-                        <thead>
-                            <tr><th colspan="2">Escala Conceptual</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td style="font-weight: bold; width: 30%;">S</td><td style="text-align: left; padding-left: 8px;">Siempre</td></tr>
-                            <tr><td style="font-weight: bold;">F</td><td style="text-align: left; padding-left: 8px;">Frecuentemente</td></tr>
-                            <tr><td style="font-weight: bold;">R/V</td><td style="text-align: left; padding-left: 8px;">Rara Vez</td></tr>
-                            <tr><td style="font-weight: bold;">N</td><td style="text-align: left; padding-left: 8px;">Nunca</td></tr>
-                            <tr><td style="font-weight: bold;">N/O</td><td style="text-align: left; padding-left: 8px;">No Observado</td></tr>
-                        </tbody>
-                    </table>
-
-                    <table class="bordered-print">
-                        <thead>
-                            <tr>
-                                <th>Días Trabajados</th>
-                                <th>Días Asistidos</th>
-                                <th>% Asistencia</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="font-weight: bold;">${estudiante.diasTrabajados}</td>
-                                <td style="font-weight: bold;">${estudiante.diasAsistidos}</td>
-                                <td style="font-weight: bold; background: #f3f4f6;">${porcentajeAsistencia}%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="print-signatures" style="page-break-inside: avoid; margin-top: 45px;">
-                    <div>
-                        <div class="print-sig-line">${cursoActivo.meta.profesor}</div>
-                        <div>Profesor(a) Jefe</div>
-                    </div>
-                    <div>
-                        <div class="print-sig-line" style="width: 220px;">DIRECTOR(A) ESTABLECIMIENTO</div>
-                        <div>Firma y Timbre UTP</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    function imprimirActivo() {
-        let cursoActivo = getCursoActivo();
-        if (estudianteIdx === -1 || !cursoActivo.estudiantes[estudianteIdx]) {
-            mostrarAlerta("Selecciona un alumno para imprimir", "warning");
-            return;
-        }
-        const container = document.getElementById('contenedor-impresion-mineduc');
-        container.innerHTML = compilarInformeHTML(cursoActivo.estudiantes[estudianteIdx]);
-        window.print();
-    }
-
-    function imprimirTodos() {
-        let cursoActivo = getCursoActivo();
-        if(cursoActivo.estudiantes.length === 0) {
-            mostrarAlerta("No hay estudiantes para imprimir", "warning");
-            return;
-        }
-
-        const container = document.getElementById('contenedor-impresion-mineduc');
-        container.innerHTML = '';
-
-        cursoActivo.estudiantes.forEach((estudiante, idx) => {
-            const htmlFicha = compilarInformeHTML(estudiante);
-            const div = document.createElement('div');
-            div.innerHTML = htmlFicha;
-            
-            if(idx < cursoActivo.estudiantes.length - 1) {
-                div.querySelector('.hoja-informe').classList.add('page-break');
-            }
-            container.appendChild(div);
-        });
-
-        window.print();
-    }
-
-    window.onbeforeprint = function() {
-        let cursoActivo = getCursoActivo();
-        const container = document.getElementById('contenedor-impresion-mineduc');
-        if(container.innerHTML === '' && estudianteIdx !== -1 && cursoActivo.estudiantes[estudianteIdx]) {
-            container.innerHTML = compilarInformeHTML(cursoActivo.estudiantes[estudianteIdx]);
-        }
-    };
-
-    window.onafterprint = function() {
-        document.getElementById('contenedor-impresion-mineduc').innerHTML = '';
-    };
-
-    function descargarRespaldoLocal() {
-        try {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
-            const downloadAnchor = document.createElement('a');
-            const cursoName = "sigedoc_respaldo_completo";
-            const anioName = "2026";
-            
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `${cursoName}_${anioName}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            mostrarAlerta("Copia de seguridad de todos los cursos descargada", "success");
-        } catch (error) {
-            mostrarAlerta("Error al descargar respaldo", "error");
-        }
-    }
-
-    function importarRespaldoLocal(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(evt) {
+    <!-- LÓGICA Y VINCULACIÓN CON LA BASE DE DATOS EN LA NUBE (FIREBASE) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+
+        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'notafacil-quilacura-v3';
+
+        let userLogged = null;
+        let dbCloud = null;
+        let auth = null;
+
+        if (firebaseConfigStr) {
             try {
-                const importedDb = JSON.parse(evt.target.result);
-                // Validar estructura PWA multigrupo o migrar si es el formato antiguo
-                if (importedDb && (importedDb.cursos || Array.isArray(importedDb.estudiantes))) {
-                    mostrarConfirmacion("¿Deseas cargar este respaldo?\nSe reemplazarán todos tus cursos actuales de SigeDoc.", () => {
-                        db = importedDb;
-                        
-                        // Migrar si el respaldo importado es de la versión antigua
-                        if (!db.cursos) {
-                            let estudiantesPrevios = db.estudiantes || [];
-                            let metaPrevia = db.meta || { establecimiento: "", comuna: "", profesor: "", curso: "7° AÑO", anio: "2026" };
-                            db.cursos = {
-                                "Default": {
-                                    nombre: metaPrevia.curso || "7° AÑO",
-                                    meta: metaPrevia,
-                                    estudiantes: estudiantesPrevios
-                                }
-                            };
-                            db.cursoActivoKey = "Default";
-                            delete db.estudiantes;
-                            delete db.meta;
+                const firebaseConfig = JSON.parse(firebaseConfigStr);
+                if (firebaseConfig && firebaseConfig.apiKey) {
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    dbCloud = getFirestore(app);
+
+                    const initAuth = async () => {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
                         }
+                    };
 
-                        window.db = db;
-                        guardarPersistencia();
-                        iniciarApp();
-                        mostrarAlerta("Cursos locales importados", "success");
+                    initAuth().catch(err => {
+                        console.error("Error de autenticación Firebase:", err);
+                        document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-red-600"\x3E\x3Ci class="fa-solid fa-wifi-slash"\x3E\x3C/i\x3E Offline\x3C/span\x3E';
                     });
-                } else {
-                    mostrarAlerta("Formato de archivo no válido", "error");
+
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userLogged = user;
+                            document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-emerald-500"\x3E\x3Ci class="fa-solid fa-cloud"\x3E\x3C/i\x3E Nube Conectada\x3C/span\x3E';
+                            
+                            try {
+                                const docRef = doc(dbCloud, 'artifacts', appId, 'users', user.uid, 'datos', 'completo');
+                                const docSnap = await getDoc(docRef);
+                                if (docSnap.exists()) {
+                                    const datosNube = docSnap.data();
+                                    if(datosNube && datosNube.cursos) {
+                                        window.db = datosNube;
+                                        window.guardarPersistencia();
+                                        window.iniciarApp();
+                                    }
+                                }
+                            } catch (error) {
+                                console.error("Error cargando backup:", error);
+                            }
+                        }
+                    });
                 }
-            } catch (err) {
-                mostrarAlerta("Error al leer archivo", "error");
+            } catch (e) {
+                console.error("Error de inicialización de la nube:", e);
             }
-        };
-        reader.readAsText(file);
-        e.target.value = "";
-    }
-
-    function mostrarAlerta(mensaje, tipo = "success") {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        
-        let bgStyle = "bg-[#374151] text-white";
-        let icon = '<i class="fa-solid fa-info-circle"></i>';
-        
-        if (tipo === "success") {
-            bgStyle = "bg-slate-700 text-white";
-            icon = '<i class="fa-solid fa-circle-check"></i>';
-        } else if (tipo === "error") {
-            bgStyle = "bg-red-700 text-white";
-            icon = '<i class="fa-solid fa-circle-xmark"></i>';
-        } else if (tipo === "warning") {
-            bgStyle = "bg-amber-600 text-white";
-            icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
-        }
-
-        toast.className = `${bgStyle} px-4 py-3 rounded-lg shadow-lg flex items-center gap-2.5 text-xs font-bold pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
-        toast.innerHTML = `${icon} <span>${mensaje}</span>`;
-        
-        container.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.remove('translate-y-2', 'opacity-0');
-        }, 50);
-
-        setTimeout(() => {
-            toast.classList.add('opacity-0', 'translate-y-[-2px]');
+        } else {
             setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 3000);
-    }
-
-    function mostrarConfirmacion(mensaje, onAceptado) {
-        const modal = document.getElementById('modal-confirmacion-custom');
-        const msgLbl = document.getElementById('lbl-confirm-mensaje');
-        const btnAceptar = document.getElementById('btn-confirm-aceptar');
-        const btnCancelar = document.getElementById('btn-confirm-cancelar');
-
-        msgLbl.innerText = mensaje;
-        modal.style.display = 'flex';
-
-        const cerrar = () => { modal.style.display = 'none'; };
-
-        btnCancelar.onclick = () => { cerrar(); };
-        btnAceptar.onclick = () => {
-            cerrar();
-            onAceptado();
-        };
-    }
-
-    function abrirConfigRed() {
-        const modal = document.getElementById('modal-net-config');
-        modal.style.display = 'flex';
-        setTimeout(() => {
-            document.getElementById('modal-content-panel').classList.remove('scale-95', 'opacity-0');
-            document.getElementById('modal-content-panel').classList.add('scale-100', 'opacity-100');
-        }, 50);
-    }
-
-    function cerrarConfigRed() {
-        document.getElementById('modal-content-panel').classList.remove('scale-100', 'opacity-100');
-        document.getElementById('modal-content-panel').classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            document.getElementById('modal-net-config').style.display = 'none';
-        }, 150);
-    }
-
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        const installBtn = document.getElementById('btn-install-pwa');
-        if (installBtn) installBtn.style.display = 'inline-block';
-    });
-
-    function instalarSigeDocApp() {
-        if (!deferredPrompt) {
-            mostrarAlerta("Instrucciones Safari: Compartir > Agregar a pantalla de inicio", "warning");
-            return;
+                const statusEl = document.getElementById('cloud-status');
+                if (statusEl) {
+                    statusEl.innerHTML = '\x3Cspan class="text-slate-400"\x3E\x3Ci class="fa-solid fa-wifi-slash"\x3E\x3C/i\x3E Modo Local Activo\x3C/span\x3E';
+                }
+            }, 100);
         }
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                const installBtn = document.getElementById('btn-install-pwa');
-                if (installBtn) installBtn.style.display = 'none';
+
+        window.guardarEnNubeCompleto = async () => {
+            if (!dbCloud || !auth || !userLogged) {
+                console.log("No hay conexión con la nube. Guardado local de seguridad.");
+                return;
             }
-            deferredPrompt = null;
-        });
-    }
 
-    // Registrar funciones al ámbito global
-    window.registrarEstudiante = registrarEstudianteRapido;
-    window.registrarEstudianteRapido = registrarEstudianteRapido;
-    window.cambiarEstadoEstudiante = cambiarEstadoEstudiante;
-    window.quitarEstudianteActivo = quitarEstudianteActivo;
-    window.agregarAsignatura = agregarAsignaturaDesdeInput;
-    window.agregarAsignaturaDesdeInput = agregarAsignaturaDesdeInput;
-    window.chequearEnterAsignatura = chequearEnterAsignatura;
-    window.eliminarAsignatura = eliminarAsignatura;
-    window.ajustarColumnas = ajustarColumnas;
-    window.editarNota = editarNota;
-    window.editarConcepto = editarConcepto;
-    window.calcularAsistencia = calcularAsistencia;
-    window.guardarCursoActualComoPlantilla = guardarCursoActualComoPlantilla;
-    window.cargarPlantillaSeleccionada = cargarPlantillaSeleccionada;
-    window.subirLogo = subirLogo;
-    window.guardarMeta = guardarMeta;
-    window.imprimirActivo = imprimirActivo;
-    window.imprimirTodos = imprimirTodos;
-    window.descargarRespaldoLocal = descargarRespaldoLocal;
-    window.importarRespaldoLocal = importarRespaldoLocal;
-    window.filtrarEstudiantesListado = filtrarEstudiantesListado;
-    window.instalarSigeDocApp = instalarSigeDocApp;
-    window.abrirConfigRed = abrirConfigRed;
-    window.cerrarConfigRed = cerrarConfigRed;
+            const statusBadge = document.getElementById('cloud-status');
+            if (statusBadge) {
+                statusBadge.innerHTML = '\x3Cspan class="text-amber-400"\x3E\x3Ci class="fa-solid fa-spinner fa-spin"\x3E\x3C/i\x3E Guardando...\x3C/span\x3E';
+            }
+            try {
+                const docRef = doc(dbCloud, 'artifacts', appId, 'users', userLogged.uid, 'datos', 'completo');
+                await setDoc(docRef, window.db);
+                if (statusBadge) {
+                    statusBadge.innerHTML = '\x3Cspan class="text-emerald-500"\x3E\x3Ci class="fa-solid fa-cloud"\x3E\x3C/i\x3E Sincronizado\x3C/span\x3E';
+                }
+            } catch (e) {
+                console.error("Error de guardado en la nube:", e);
+                if (statusBadge) {
+                    statusBadge.innerHTML = '\x3Cspan class="text-red-500"\x3E\x3Ci class="fa-solid fa-triangle-exclamation"\x3E\x3C/i\x3E Error Sinc.\x3C/span\x3E';
+                }
+            }
+        };
+    </script>
 
-    // Métodos globales del selector de cursos y estudiantes nuevos
-    window.cambiarCursoSeleccionado = cambiarCursoSeleccionado;
-    window.abrirNuevoCursoModal = abrirNuevoCursoModal;
-    window.cerrarNuevoCursoModal = cerrarNuevoCursoModal;
-    window.guardarNuevoCursoCreado = guardarNuevoCursoCreado;
-    window.eliminarCursoActual = eliminarCursoActual;
-    window.eliminarCursoPorKey = eliminarCursoPorKey;
-    
-    // Métodos de los modales de estudiantes
-    window.abrirNuevoEstudianteModal = abrirNuevoEstudianteModal;
-    window.cerrarNuevoEstudianteModal = cerrarNuevoEstudianteModal;
-    window.guardarNuevoEstudiante = guardarNuevoEstudiante;
+    <!-- MOTOR LÓGICO DE LA LIBRETA DE NOTAS (LOCAL FALLBACK) -->
+    <script>
+        // DB Inicial del Sistema por defecto
+        const defaultDB = {
+            cursos: [
+                {
+                    id: "7_basico",
+                    nombre: "7° AÑO BÁSICO",
+                    estudiantes: [
+                        {
+                            nombre: "CONSTANZA BELÉN VALENZUELA",
+                            estado: "Regular",
+                            responsabilidad: "Excelente",
+                            respeto: "Muy Bueno",
+                            asignaturas: [
+                                { nombre: "EDUCACIÓN FÍSICA Y SALUD", notasS1: [6.5, 7.0, 5.8, "", "", ""], notasS2: [6.0, 6.2, "", "", "", ""] },
+                                { nombre: "LENGUA Y LITERATURA", notasS1: [5.5, 6.0, "", "", "", ""], notasS2: [5.8, 6.5, "", "", "", ""] },
+                                { nombre: "MATEMÁTICA", notasS1: [4.8, 5.2, "", "", "", ""], notasS2: [5.0, 5.5, "", "", "", ""] },
+                                { nombre: "CIENCIAS NATURALES", notasS1: [6.0, 6.1, "", "", "", ""], notasS2: [5.9, 6.3, "", "", "", ""] }
+                            ]
+                        },
+                        {
+                            nombre: "DIEGO IGNACIO MUÑOZ CASTRO",
+                            estado: "Alerta",
+                            responsabilidad: "Bueno",
+                            respeto: "Bueno",
+                            asignaturas: [
+                                { nombre: "EDUCACIÓN FÍSICA Y SALUD", notasS1: [4.5, 4.0, "", "", "", ""], notasS2: [4.2, "", "", "", "", ""] },
+                                { nombre: "LENGUA Y LITERATURA", notasS1: [3.8, 4.2, "", "", "", ""], notasS2: [4.0, "", "", "", "", ""] },
+                                { nombre: "MATEMÁTICA", notasS1: [3.5, 3.9, "", "", "", ""], notasS2: [3.2, "", "", "", "", ""] },
+                                { nombre: "CIENCIAS NATURALES", notasS1: [4.0, 4.2, "", "", "", ""], notasS2: [4.1, "", "", "", "", ""] }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: "8_basico",
+                    nombre: "8° AÑO BÁSICO",
+                    estudiantes: [
+                        {
+                            nombre: "ALEXIS ESTEBAN SANHUEZA",
+                            estado: "Regular",
+                            responsabilidad: "Muy Bueno",
+                            respeto: "Excelente",
+                            asignaturas: [
+                                { nombre: "EDUCACIÓN FÍSICA Y SALUD", notasS1: [5.8, 6.0, "", "", "", ""], notasS2: [6.1, "", "", "", "", ""] },
+                                { nombre: "LENGUA Y LITERATURA", notasS1: [6.2, 5.9, "", "", "", ""], notasS2: [6.0, "", "", "", "", ""] },
+                                { nombre: "MATEMÁTICA", notasS1: [4.5, 5.0, "", "", "", ""], notasS2: [5.2, "", "", "", "", ""] },
+                                { nombre: "CIENCIAS NATURALES", notasS1: [5.0, 5.5, "", "", "", ""], notasS2: [5.8, "", "", "", "", ""] }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            cursoActivoId: "7_basico"
+        };
 
-    iniciarApp();
-</script>
+        // Estado en memoria
+        window.db = JSON.parse(localStorage.getItem('sigedoc_db_v3')) || defaultDB;
+        let estudianteIdx = -1; // Ninguno seleccionado al inicio
+        let busquedaTerm = "";
+
+        // Funciones auxiliares de cálculo y formato
+        function aproximarNota(num) {
+            return Math.round(num * 10) / 10;
+        }
+
+        function calcularSemestrePromedio(notasArray) {
+            const filtradas = notasArray.map(n => String(n).trim().replace(',', '.'))
+                                        .filter(n => n !== "" && !isNaN(parseFloat(n)));
+            if (filtradas.length === 0) return "-";
+            const suma = filtradas.reduce((a, b) => a + parseFloat(b), 0);
+            return (suma / filtradas.length).toFixed(1).replace('.', ',');
+        }
+
+        function getCursoActivo() {
+            return window.db.cursos.find(c => c.id === window.db.cursoActivoId) || window.db.cursos[0];
+        }
+
+        // Modales
+        function mostrarAlerta(mensaje, tipo = "info") {
+            const modal = document.getElementById('modal-alerta');
+            const txt = document.getElementById('modal-alerta-texto');
+            const icon = document.getElementById('modal-alerta-icono');
+            
+            txt.textContent = mensaje;
+            
+            if (tipo === "success") {
+                icon.className = "fa-solid fa-circle-check text-green-500 text-4xl";
+            } else if (tipo === "error") {
+                icon.className = "fa-solid fa-circle-xmark text-red-500 text-4xl";
+            } else if (tipo === "warning") {
+                icon.className = "fa-solid fa-triangle-exclamation text-amber-500 text-4xl";
+            } else {
+                icon.className = "fa-solid fa-circle-info text-blue-500 text-4xl";
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function cerrarAlerta() {
+            const modal = document.getElementById('modal-alerta');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        let confirmacionCallback = null;
+        function mostrarConfirmacion(mensaje, callback) {
+            const modal = document.getElementById('modal-confirmacion');
+            const txt = document.getElementById('modal-confirmacion-texto');
+            txt.textContent = mensaje;
+            confirmacionCallback = callback;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function cerrarConfirmacion(aceptado) {
+            const modal = document.getElementById('modal-confirmacion');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (aceptado && confirmacionCallback) {
+                confirmacionCallback();
+            }
+            confirmacionCallback = null;
+        }
+
+        // Renderizado de Alumnos en el Panel Izquierdo
+        function renderEstudiantes() {
+            const listDiv = document.getElementById('lista-estudiantes');
+            listDiv.innerHTML = '';
+
+            let cursoActivo = getCursoActivo();
+
+            const estudiantesFiltrados = cursoActivo.estudiantes.map((est, idx) => ({ est, originalIdx: idx }))
+                .filter(item => item.est.nombre.toLowerCase().includes(busquedaTerm.toLowerCase()));
+
+            if (estudiantesFiltrados.length === 0 && busquedaTerm.trim().length > 0) {
+                listDiv.innerHTML = `
+                    <div class="p-4 text-center">
+                        <p class="text-xs text-slate-400 mb-2">"${busquedaTerm.toUpperCase()}" no existe</p>
+                        <button class="bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-[10px] px-3 py-1.5 rounded transition" onclick="registrarEstudianteRapido()"><i class="fa-solid fa-user-plus"></i> Registrar en Curso</button>
+                    </div>
+                `;
+                return;
+            } else if (estudiantesFiltrados.length === 0) {
+                listDiv.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Sin estudiantes registrados en este curso</div>`;
+                return;
+            }
+
+            estudiantesFiltrados.forEach(item => {
+                const est = item.est;
+                const idx = item.originalIdx;
+                
+                const nombres = est.nombre.split(' ');
+                let iniciales = "ES";
+                if(nombres.length >= 2 && nombres[0] && nombres[1]) {
+                    iniciales = (nombres[0][0] + nombres[1][0]).toUpperCase();
+                } else if(nombres[0]) {
+                    iniciales = nombres[0].slice(0,2).toUpperCase();
+                }
+
+                // Calcular promedio general de asignaturas
+                let promTotal = "S/N";
+                let sumProms = 0, cantProms = 0;
+                
+                est.asignaturas.forEach(ramo => {
+                    let promS1 = calcularSemestrePromedio(ramo.notasS1 || []);
+                    let promS2 = calcularSemestrePromedio(ramo.notasS2 || []);
+                    if(promS1 !== "-" && promS2 !== "-") {
+                        let p1 = parseFloat(promS1.replace(',','.'));
+                        let p2 = parseFloat(promS2.replace(',','.'));
+                        sumProms += aproximarNota((p1 + p2) / 2);
+                        cantProms++;
+                    } else if (promS1 !== "-") {
+                        sumProms += parseFloat(promS1.replace(',','.'));
+                        cantProms++;
+                    } else if (promS2 !== "-") {
+                        sumProms += parseFloat(promS2.replace(',','.'));
+                        cantProms++;
+                    }
+                });
+
+                if(cantProms > 0) {
+                    promTotal = (sumProms / cantProms).toFixed(1).replace('.', ',');
+                }
+
+                const tab = document.createElement('div');
+                tab.className = `chat-item group relative ${idx === estudianteIdx ? 'active' : ''}`;
+                tab.innerHTML = `
+                    <div class="student-avatar" style="background-color: ${idx === estudianteIdx ? '#10b981' : '#64748b'};">${iniciales}</div>
+                    <div class="chat-info overflow-hidden">
+                        <div class="chat-info-top">
+                            <div class="chat-name truncate max-w-[150px]" title="${est.nombre}">${est.nombre}</div>
+                            <div class="chat-time">Prom: ${promTotal}</div>
+                        </div>
+                        <div class="chat-message-preview">
+                            <span>Estado: ${est.estado || 'Regular'}</span>
+                            <span class="text-[9px] font-bold text-slate-700">${est.estado === 'Regular' ? '✔' : '⚠'}</span>
+                        </div>
+                    </div>
+                    <!-- Botón de borrado directo al pasar el cursor -->
+                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 shrink-0">
+                        <button class="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition shadow-sm" onclick="event.stopPropagation(); quitarEstudiantePorIndice(${idx})" title="Eliminar Estudiante">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                tab.onclick = () => {
+                    seleccionarEstudiante(idx);
+                };
+                listDiv.appendChild(tab);
+            });
+        }
+
+        // Selección de Estudiante
+        function seleccionarEstudiante(idx) {
+            estudianteIdx = idx;
+            renderEstudiantes();
+            renderEvaluacion();
+        }
+
+        // Renderizado del Panel Derecho de Evaluación
+        function renderEvaluacion() {
+            const vacio = document.getElementById('ficha-vacia');
+            const contenido = document.getElementById('ficha-contenido');
+            
+            let cursoActivo = getCursoActivo();
+            const est = cursoActivo.estudiantes[estudianteIdx];
+
+            if (estudianteIdx === -1 || !est) {
+                vacio.style.display = 'flex';
+                contenido.style.display = 'none';
+                return;
+            }
+
+            vacio.style.display = 'none';
+            contenido.style.display = 'flex';
+
+            // Cargar datos en la cabecera
+            document.getElementById('activo-nombre').textContent = est.nombre;
+            document.getElementById('estado-estudiante-activo').value = est.estado || 'Regular';
+            document.getElementById('crit-responsabilidad').value = est.responsabilidad || 'Excelente';
+            document.getElementById('crit-respeto').value = est.respeto || 'Muy Bueno';
+
+            // Renderizar asignaturas
+            const contAsig = document.getElementById('contenedor-asignaturas');
+            contAsig.innerHTML = '';
+
+            est.asignaturas.forEach((ramo, asigIdx) => {
+                const s1Prom = calcularSemestrePromedio(ramo.notasS1);
+                const s2Prom = calcularSemestrePromedio(ramo.notasS2);
+
+                let promAnual = "-";
+                if(s1Prom !== "-" && s2Prom !== "-") {
+                    let p1 = parseFloat(s1Prom.replace(',','.'));
+                    let p2 = parseFloat(s2Prom.replace(',','.'));
+                    promAnual = aproximarNota((p1 + p2) / 2).toFixed(1).replace('.', ',');
+                } else if(s1Prom !== "-") {
+                    promAnual = s1Prom;
+                } else if(s2Prom !== "-") {
+                    promAnual = s2Prom;
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl border border-slate-200 p-6 shadow-sm";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <span class="text-sm font-extrabold text-slate-800"><i class="fa-solid fa-book-bookmark text-emerald-500 mr-2"></i> ${ramo.nombre}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400 font-bold uppercase">Nota de Curso:</span>
+                            <span class="text-sm font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Prom: ${promAnual}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Semestre 1 -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Semestre 1</span>
+                                <span class="text-xs font-bold text-slate-600">Prom: ${s1Prom}</span>
+                            </div>
+                            <div class="grid grid-cols-6 gap-2">
+                                ${ramo.notasS1.map((nota, nIdx) => `
+                                    <input type="text" value="${nota}" 
+                                        oninput="modificarNota(${asigIdx}, 'S1', ${nIdx}, this.value)"
+                                        class="w-full bg-slate-50 border border-slate-200 rounded text-center text-xs py-1.5 font-bold focus:outline-none focus:border-emerald-500"
+                                        placeholder="-">
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Semestre 2 -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Semestre 2</span>
+                                <span class="text-xs font-bold text-slate-600">Prom: ${s2Prom}</span>
+                            </div>
+                            <div class="grid grid-cols-6 gap-2">
+                                ${ramo.notasS2.map((nota, nIdx) => `
+                                    <input type="text" value="${nota}" 
+                                        oninput="modificarNota(${asigIdx}, 'S2', ${nIdx}, this.value)"
+                                        class="w-full bg-slate-50 border border-slate-200 rounded text-center text-xs py-1.5 font-bold focus:outline-none focus:border-emerald-500"
+                                        placeholder="-">
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contAsig.appendChild(card);
+            });
+        }
+
+        // Modificar una celda de notas
+        function modificarNota(asigIdx, semestre, nIdx, valor) {
+            let cursoActivo = getCursoActivo();
+            const est = cursoActivo.estudiantes[estudianteIdx];
+            if (!est) return;
+
+            // Formatear valor reemplazando comas por puntos
+            let v = valor.trim().replace(',', '.');
+            if (v !== "" && isNaN(parseFloat(v))) {
+                return; // Ignorar si no es un número
+            }
+
+            if (semestre === 'S1') {
+                est.asignaturas[asigIdx].notasS1[nIdx] = valor;
+            } else {
+                est.asignaturas[asigIdx].notasS2[nIdx] = valor;
+            }
+
+            guardarPersistencia();
+            
+            // Recalcular promedio de forma asíncrona pero actualizando los elementos visuales sin redibujar todo
+            const s1Prom = calcularSemestrePromedio(est.asignaturas[asigIdx].notasS1);
+            const s2Prom = calcularSemestrePromedio(est.asignaturas[asigIdx].notasS2);
+            let promAnual = "-";
+            if(s1Prom !== "-" && s2Prom !== "-") {
+                let p1 = parseFloat(s1Prom.replace(',','.'));
+                let p2 = parseFloat(s2Prom.replace(',','.'));
+                promAnual = aproximarNota((p1 + p2) / 2).toFixed(1).replace('.', ',');
+            } else if(s1Prom !== "-") {
+                promAnual = s1Prom;
+            } else if(s2Prom !== "-") {
+                promAnual = s2Prom;
+            }
+            
+            // Actualizar promedios en la lista de la izquierda de fondo
+            renderEstudiantes();
+        }
+
+        // Guardar Criterios de Comportamiento
+        function guardarCriterios() {
+            let cursoActivo = getCursoActivo();
+            const est = cursoActivo.estudiantes[estudianteIdx];
+            if (!est) return;
+
+            est.responsabilidad = document.getElementById('crit-responsabilidad').value;
+            est.respeto = document.getElementById('crit-respeto').value;
+            guardarPersistencia();
+        }
+
+        // Cambiar Estado Académico del Alumno Activo
+        function cambiarEstadoEstudiante() {
+            let cursoActivo = getCursoActivo();
+            if (estudianteIdx === -1) return;
+            cursoActivo.estudiantes[estudianteIdx].estado = document.getElementById('estado-estudiante-activo').value;
+            guardarPersistencia();
+            renderEstudiantes();
+        }
+
+        // Registrar un nuevo estudiante
+        function registrarEstudianteRapido() {
+            const input = document.getElementById('nuevo-nombre');
+            let nombreVal = input.value.trim().toUpperCase();
+            
+            if (nombreVal.length === 0 && busquedaTerm.trim().length > 0) {
+                nombreVal = busquedaTerm.trim().toUpperCase();
+            }
+
+            if (nombreVal.length === 0) {
+                mostrarAlerta("Por favor, ingrese un nombre para registrar.", "warning");
+                return;
+            }
+
+            let cursoActivo = getCursoActivo();
+            const nuevo = {
+                nombre: nombreVal,
+                estado: "Regular",
+                responsabilidad: "Excelente",
+                respeto: "Excelente",
+                asignaturas: [
+                    { nombre: "EDUCACIÓN FÍSICA Y SALUD", notasS1: ["", "", "", "", "", ""], notasS2: ["", "", "", "", "", ""] },
+                    { nombre: "LENGUA Y LITERATURA", notasS1: ["", "", "", "", "", ""], notasS2: ["", "", "", "", "", ""] },
+                    { nombre: "MATEMÁTICA", notasS1: ["", "", "", "", "", ""], notasS2: ["", "", "", "", "", ""] },
+                    { nombre: "CIENCIAS NATURALES", notasS1: ["", "", "", "", "", ""], notasS2: ["", "", "", "", "", ""] }
+                ]
+            };
+
+            cursoActivo.estudiantes.push(nuevo);
+            // Ordenar alfabéticamente
+            cursoActivo.estudiantes.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            
+            // Buscar la nueva posición para seleccionarlo
+            estudianteIdx = cursoActivo.estudiantes.findIndex(e => e.nombre === nombreVal);
+
+            input.value = '';
+            document.getElementById('buscador-alumnos').value = '';
+            busquedaTerm = "";
+
+            guardarPersistencia();
+            renderEstudiantes();
+            renderEvaluacion();
+            mostrarAlerta(`¡Estudiante ${nombreVal} registrado exitosamente!`, "success");
+        }
+
+        // Quitar Estudiante por Índice (Botón de eliminación directa)
+        function quitarEstudiantePorIndice(idx) {
+            let cursoActivo = getCursoActivo();
+            const est = cursoActivo.estudiantes[idx];
+            if (!est) return;
+
+            mostrarConfirmacion(`¿Estás seguro de que deseas eliminar permanentemente a ${est.nombre} de SigeDoc?`, () => {
+                cursoActivo.estudiantes.splice(idx, 1);
+                
+                // Ajustar el índice activo de forma inteligente
+                if (estudianteIdx === idx) {
+                    estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
+                } else if (estudianteIdx > idx) {
+                    estudianteIdx--;
+                }
+
+                guardarPersistencia();
+                renderEstudiantes();
+                renderEvaluacion();
+                mostrarAlerta("Estudiante eliminado", "info");
+            });
+        }
+
+        // Filtrar Alumnos en la búsqueda
+        function filtrarAlumnos(term) {
+            busquedaTerm = term;
+            renderEstudiantes();
+        }
+
+        // Cambiar de Curso
+        function cambiarCurso(cursoId) {
+            window.db.cursoActivoId = cursoId;
+            estudianteIdx = -1; // Resetear selección
+            guardarPersistencia();
+            renderEstudiantes();
+            renderEvaluacion();
+        }
+
+        // Guardar persistencia local y en nube
+        window.guardarPersistencia = () => {
+            localStorage.setItem('sigedoc_db_v3', JSON.stringify(window.db));
+            if (typeof window.guardarEnNubeCompleto === 'function') {
+                window.guardarEnNubeCompleto();
+            }
+        };
+
+        // Forzar Sincronización Manual
+        window.forzarSincronizacionCloud = () => {
+            if (typeof window.guardarEnNubeCompleto === 'function') {
+                window.guardarEnNubeCompleto().then(() => {
+                    mostrarAlerta("Sincronización forzada completada correctamente con el servidor.", "success");
+                });
+            } else {
+                mostrarAlerta("No hay servicio en la nube conectado en este servidor.", "warning");
+            }
+        };
+
+        // Imprimir informe oficial UTP para el alumno
+        function imprimirInformeEstudiante() {
+            let cursoActivo = getCursoActivo();
+            const est = cursoActivo.estudiantes[estudianteIdx];
+            if(!est) return;
+
+            const areaPrint = document.getElementById('area-impresion-utp');
+            areaPrint.innerHTML = '';
+
+            const fechaHoy = new Date().toLocaleDateString('es-CL');
+
+            areaPrint.innerHTML = `
+                <div class="border-b-4 border-slate-800 pb-4 mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="font-extrabold text-sm uppercase tracking-wider">COLEGIO PARTICULAR QUILACURA</h2>
+                        <p class="text-xs text-slate-500 font-semibold">Unidad Técnica Pedagógica (UTP)</p>
+                    </div>
+                    <div class="text-right text-xs">
+                        <p class="font-bold">AÑO ESCOLAR 2026</p>
+                        <p class="text-slate-500 font-semibold">Fecha: ${fechaHoy}</p>
+                    </div>
+                </div>
+
+                <div class="text-center my-6">
+                    <h1 class="text-lg font-black tracking-widest uppercase underline">Informe Oficial de Calificaciones</h1>
+                    <p class="text-xs text-slate-500 font-bold mt-1 uppercase">Ficha Acumulativa Interna de Rendimiento</p>
+                </div>
+
+                <table class="w-full border-collapse border border-slate-300 text-xs mb-6">
+                    <tr>
+                        <td class="border border-slate-300 p-2 font-bold bg-slate-50 w-1/4">ESTUDIANTE:</td>
+                        <td class="border border-slate-300 p-2 font-black">${est.nombre}</td>
+                        <td class="border border-slate-300 p-2 font-bold bg-slate-50 w-1/4">CURSO / NIVEL:</td>
+                        <td class="border border-slate-300 p-2 font-bold">${cursoActivo.nombre}</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-slate-300 p-2 font-bold bg-slate-50">CONDICIÓN:</td>
+                        <td class="border border-slate-300 p-2 font-semibold text-emerald-700">${est.estado || 'Regular'}</td>
+                        <td class="border border-slate-300 p-2 font-bold bg-slate-50">ID DOCENTE:</td>
+                        <td class="border border-slate-300 p-2 font-bold">PROFESOR JEFE</td>
+                    </tr>
+                </table>
+
+                <table class="w-full border-collapse border border-slate-400 text-xs text-center grade-table mb-6">
+                    <thead>
+                        <tr class="bg-slate-100 font-black">
+                            <th class="border border-slate-400 p-2 text-left">ASIGNATURA</th>
+                            <th class="border border-slate-400 p-2">S1 PROM</th>
+                            <th class="border border-slate-400 p-2">S2 PROM</th>
+                            <th class="border border-slate-400 p-2 bg-slate-50">ANUAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${est.asignaturas.map(ramo => {
+                            const s1 = calcularSemestrePromedio(ramo.notasS1);
+                            const s2 = calcularSemestrePromedio(ramo.notasS2);
+                            let promAnual = "-";
+                            if(s1 !== "-" && s2 !== "-") {
+                                let p1 = parseFloat(s1.replace(',','.'));
+                                let p2 = parseFloat(s2.replace(',','.'));
+                                promAnual = aproximarNota((p1 + p2) / 2).toFixed(1).replace('.', ',');
+                            } else if(s1 !== "-") {
+                                promAnual = s1;
+                            } else if(s2 !== "-") {
+                                promAnual = s2;
+                            }
+
+                            return `
+                                <tr>
+                                    <td class="border border-slate-400 p-2 font-bold text-left">${ramo.nombre}</td>
+                                    <td class="border border-slate-400 p-2">${s1}</td>
+                                    <td class="border border-slate-400 p-2">${s2}</td>
+                                    <td class="border border-slate-400 p-2 font-bold bg-slate-50 text-slate-900">${promAnual}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+
+                <div class="mt-8 border border-slate-300 rounded-lg p-4 bg-slate-50">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Desarrollo Personal y Cualidades</h4>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <p><span class="font-bold text-slate-500">Responsabilidad:</span> <span class="font-bold text-slate-800">${est.responsabilidad || 'Excelente'}</span></p>
+                        <p><span class="font-bold text-slate-500">Convivencia Escolar:</span> <span class="font-bold text-slate-800">${est.respeto || 'Excelente'}</span></p>
+                    </div>
+                </div>
+
+                <div class="mt-20 flex justify-around text-center text-[10px] font-bold">
+                    <div class="border-t border-slate-800 w-[200px] pt-2">Firma Profesor Jefe</div>
+                    <div class="border-t border-slate-800 w-[200px] pt-2">Timbre Dirección UTP</div>
+                </div>
+            `;
+
+            window.print();
+        }
+
+        // Inicialización de la aplicación al cargar
+        window.iniciarApp = () => {
+            const selector = document.getElementById('selector-curso');
+            if(selector) {
+                selector.value = window.db.cursoActivoId || '7_basico';
+            }
+            renderEstudiantes();
+            renderEvaluacion();
+        };
+
+        // Iniciar en onload
+        window.onload = () => {
+            window.iniciarApp();
+        };
+    </script>
+
 </body>
 </html>
