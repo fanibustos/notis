@@ -3,547 +3,743 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SigeDoc - Informe de Notas Quilacura</title>
+    <title>SigeDoc - Suite de Gestión Curricular</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="manifest" href='data:application/manifest+json,{"name":"SigeDoc - Gestión Docente","short_name":"SigeDoc","start_url":".","display":"standalone","background_color":"#f3f4f6","theme_color":"#374151","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3135/3135768.png","sizes":"512x512","type":"image/png"}]}' />
+    <meta name="theme-color" content="#374151">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135768.png">
+
+    <!-- Tailwind CSS para estilizado ágil -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         :root {
-            --primary: #1e3a8a;       /* Azul Institucional Profundo */
-            --primary-light: #2563eb; /* Azul Interactivo */
-            --primary-dark: #0f172a;  /* Gris Pizarra Oscuro */
-            --success: #15803d;       /* Verde Académico */
-            --success-light: #f0fdf4; /* Fondo Verde Claro */
-            --danger: #dc2626;        /* Rojo de Alerta */
-            --bg: #f1f5f9;            /* Fondo Gris Claro */
-            --border: #94a3b8;        /* Gris de Bordes */
-            --text: #334155;          /* Texto Gris Carbono */
+            --wa-bg: #e5e7eb;
+            --wa-gray-dark: #1f2937;    /* Gris carbón principal */
+            --wa-gray-light: #4b5563;   /* Gris medio interactivo */
+            --wa-header: #f3f4f6;       /* Fondo de cabeceras gris claro */
+            --wa-active: #e5e7eb;       /* Elemento seleccionado */
+            --wa-bubble-in: #ffffff;    /* Globo de entrada (Blanco puro) */
+            --wa-bubble-out: #f1f5f9;   /* Globo de salida (Gris suave) */
+            --wa-border: #e5e7eb;       /* Bordes separadores */
+            --wa-text-gray: #6b7280;    /* Textos secundarios */
+            --text-dark: #111827;       /* Texto negro/gris de lectura */
+            --danger: #dc2626;          /* Rojo funcional para borrar/bajas */
+            --border: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #d1d5db;
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        /* Contenedor Principal */
-        .container {
-            max-width: 1350px;
-            margin: auto;
+        .app-window {
+            width: 100%;
+            height: 100vh;
+            max-width: 1600px;
+            background: #f3f4f6;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Sidebar izquierdo */
+        .sidebar {
             background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border-right: 1px solid var(--wa-border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
-        /* Barra de herramientas superior */
-        .toolbar {
+        .sidebar-header {
+            background: var(--wa-header);
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            gap: 15px;
-            flex-wrap: wrap;
+            border-bottom: 1px solid var(--wa-border);
         }
 
-        .flex-group {
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--wa-gray-dark);
+            color: white;
+            border-radius: 50%;
             display: flex;
             align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            color: #4b5563;
+            font-size: 18px;
+            align-items: center;
+        }
+
+        .header-actions i {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .header-actions i:hover {
+            color: var(--wa-gray-light);
+        }
+
+        /* Animación para el botón de instalación PWA */
+        #btn-install-pwa {
+            animation: pulse-gray 2s infinite;
+            border-radius: 50%;
+            padding: 4px;
+        }
+
+        @keyframes pulse-gray {
+            0% { box-shadow: 0 0 0 0 rgba(75, 85, 99, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(75, 85, 99, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(75, 85, 99, 0); }
+        }
+
+        /* Barra de búsqueda e ingreso */
+        .search-container {
+            padding: 8px 12px;
+            background: white;
+            border-bottom: 1px solid var(--wa-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .search-bar-wrapper {
+            background: var(--wa-header);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 5px 12px;
             gap: 10px;
         }
 
-        /* Estilo del Panel de Encabezado Oficial */
-        .official-header {
-            border: 2px solid var(--primary-dark);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            background: #fff;
+        .search-bar-wrapper input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+            color: var(--text-dark);
         }
 
-        .header-top-grid {
-            display: grid;
-            grid-template-columns: 120px 1fr 120px;
+        /* Listado de Estudiantes */
+        .chat-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .chat-item {
+            display: flex;
+            padding: 12px 16px;
             align-items: center;
             gap: 15px;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 15px;
-            margin-bottom: 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.2s;
         }
 
-        /* Logo Box con marco sólido limpio sin rayitas */
-        .logo-box {
-            width: 110px;
-            height: 110px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+        .chat-item:hover {
+            background: #f9fafb;
+        }
+
+        .chat-item.active {
+            background: var(--wa-active);
+        }
+
+        .student-avatar {
+            width: 49px;
+            height: 49px;
+            border-radius: 50%;
+            background: #64748b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .chat-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .chat-info-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-dark);
+        }
+
+        .chat-time {
+            font-size: 11px;
+            color: var(--wa-text-gray);
+        }
+
+        .chat-message-preview {
+            font-size: 13px;
+            color: var(--wa-text-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-window {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+            background-color: var(--wa-bg);
+            /* Usamos la textura de fondo clásica pero con opacidad baja sobre fondo gris de escala */
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-blend-mode: multiply;
+        }
+
+        /* Pantalla de Bienvenida */
+        .welcome-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
-            background: #fafafa;
-            position: relative;
-        }
-
-        .logo-box img {
-            width: 100%;
             height: 100%;
-            object-fit: contain;
-        }
-
-        .logo-text {
-            font-size: 9px;
-            color: #64748b;
+            background: #f9fafb;
             text-align: center;
-            margin-top: 4px;
+            padding: 40px;
+            border-bottom: 6px solid var(--wa-gray-light);
         }
 
-        .header-title-block {
-            text-align: center;
+        .welcome-screen i {
+            font-size: 80px;
+            color: #cbd5e1;
+            margin-bottom: 20px;
         }
 
-        .header-title-block h1 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: var(--primary);
+        .welcome-screen h2 {
+            font-size: 32px;
+            font-weight: 300;
+            color: #374151;
+            margin-bottom: 10px;
         }
 
-        .header-title-block h2 {
-            margin: 3px 0 0 0;
+        .welcome-screen p {
             font-size: 14px;
-            font-weight: 700;
-            color: var(--text);
+            color: #6b7280;
+            max-width: 480px;
+            line-height: 20px;
         }
 
-        .meta-grid {
+        /* Cabecera del Chat Activo */
+        .chat-header {
+            background: var(--wa-header);
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--wa-border);
+            z-index: 10;
+        }
+
+        .chat-student-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-student-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-dark);
+        }
+
+        .chat-student-status {
+            font-size: 12px;
+            color: var(--wa-text-gray);
+            margin-top: 2px;
+        }
+
+        .chat-messages-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+            line-height: 1.4;
+        }
+
+        .bubble-in {
+            background: var(--wa-bubble-in);
+            align-self: flex-start;
+            border-top-left-radius: 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        .bubble-out {
+            background: var(--wa-bubble-out);
+            align-self: flex-end;
+            border-top-right-radius: 0;
+            border: 1px solid #cbd5e1;
+        }
+
+        .bubble-title {
+            font-weight: bold;
+            color: var(--wa-gray-dark);
+            font-size: 14px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Barra de Entrada inferior */
+        .chat-input-bar {
+            background: var(--wa-header);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid var(--wa-border);
+            z-index: 10;
+        }
+
+        .chat-input-bar input {
+            flex-grow: 1;
+            background: white;
+            border: none;
+            outline: none;
+            padding: 11px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            color: var(--text-dark);
+        }
+
+        .chat-input-bar .btn-send {
+            width: 44px;
+            height: 44px;
+            background: transparent;
+            border: none;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .chat-input-bar .btn-send:hover {
+            color: var(--wa-gray-dark);
+        }
+
+        /* Tablas e inputs adaptados */
+        .meta-form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
 
-        .form-control {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 13px;
-            background: #fff;
-            width: 100%;
-            box-sizing: border-box;
-            font-weight: 500;
-            color: var(--text);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-        }
-
-        /* Layout Principal */
-        .workspace {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 25px;
-        }
-
-        /* Sidebar de Estudiantes */
-        .sidebar {
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            height: fit-content;
-        }
-
-        .sidebar-section {
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 15px;
-        }
-
-        .sidebar-section:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-            margin-bottom: 0;
-        }
-
-        .student-list {
-            margin-top: 15px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        .student-tab {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 12px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .student-tab:hover {
-            border-color: var(--success);
-            background: var(--success-light);
-        }
-
-        .student-tab.active {
-            background: #e0f2fe;
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Ficha del Estudiante Activo */
-        .profile-card {
-            background: var(--success-light);
-            border: 1px solid var(--success);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .profile-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--success);
-        }
-
-        /* Estilo de Tablas */
-        table {
+        table.bordered {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 25px;
             background: white;
+            margin-top: 5px;
         }
 
         table.bordered th, table.bordered td {
-            border: 1px solid #000;
-            padding: 6px;
+            border: 1px solid #cbd5e1;
+            padding: 5px;
             text-align: center;
             font-size: 12px;
         }
 
         table.bordered th {
-            background: #f1f5f9;
+            background: #f3f4f6;
             font-weight: 700;
-            color: var(--primary-dark);
+            color: var(--wa-gray-dark);
         }
 
-        .input-nota {
-            width: 35px;
-            height: 25px;
-            text-align: center;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        /* Botonera */
-        .btn {
-            padding: 9px 15px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.2s;
-        }
-
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-light); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #166534; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #b91c1c; }
-        .btn-sm { padding: 4px 8px; font-size: 11px; }
-
-        /* Estilo de Firmas al imprimir */
-        .signature-section {
+        /* Estilos de Impresión Oficial */
+        .print-only-layout {
             display: none;
-            margin-top: 50px;
-            justify-content: space-around;
-            text-align: center;
         }
 
-        .signature-line {
-            width: 200px;
-            border-top: 1px dashed #000;
-            padding-top: 5px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        /* Evitar que se dividan los conceptos y la asistencia al imprimir */
-        .prevent-break {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            margin-top: 25px;
-        }
-
-        /* Opciones de formato de papel */
-        body.format-oficio .container {
-            max-width: 100%;
-        }
-
-        /* Estilos de Impresión */
         @media print {
             .no-print { display: none !important; }
             body { background: white; padding: 0; margin: 0; color: #000; }
-            .container { box-shadow: none; padding: 0; max-width: 100% !important; }
-            .workspace { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
-            .signature-section { display: flex; }
-            table.bordered th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .page-break { page-break-after: always; }
+            .print-only-layout { display: block !important; }
+            .app-window { display: none !important; }
             
-            /* Remueve encabezados de navegador */
+            .hoja-informe {
+                width: 100%;
+                max-width: 19cm;
+                margin: 0 auto;
+                padding: 1.2cm;
+                box-sizing: border-box;
+            }
+
+            .print-header-grid {
+                display: grid;
+                grid-template-columns: 100px 1fr 100px;
+                align-items: center;
+                border-bottom: 2px solid #000;
+                padding-bottom: 12px;
+                margin-bottom: 15px;
+            }
+
+            .print-school-meta {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 15px;
+            }
+
+            .print-school-meta td {
+                border: 1px solid #000 !important;
+                padding: 5px;
+                font-size: 11px;
+            }
+
+            .lbl-meta {
+                font-weight: bold;
+                background-color: #f2f2f2 !important;
+                width: 25%;
+            }
+
+            table.bordered-print {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+
+            table.bordered-print th, table.bordered-print td {
+                border: 1px solid #000 !important;
+                padding: 5px;
+                font-size: 11px;
+                text-align: center;
+            }
+
+            table.bordered-print th {
+                background-color: #f2f2f2 !important;
+                font-weight: bold;
+            }
+
+            .print-signatures {
+                margin-top: 50px;
+                display: flex;
+                justify-content: space-around;
+                text-align: center;
+            }
+
+            .print-sig-line {
+                width: 200px;
+                border-top: 1px solid #000;
+                padding-top: 5px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+
+            .page-break {
+                page-break-after: always;
+            }
+
             @page {
                 size: auto;
-                margin: 1.2cm 1.2cm 1.2cm 1.2cm;
+                margin: 1cm;
             }
         }
     </style>
 </head>
 <body id="main-body">
 
-<div class="container">
-    <!-- Barra de Control -->
-    <div class="toolbar no-print">
-        <div class="flex-group">
-            <label style="font-weight: bold; font-size: 13px;"><i class="fa-solid fa-file"></i> Formato Papel:</label>
-            <select id="paper-format" class="form-control" style="width: auto;" onchange="cambiarFormato()">
-                <option value="carta">Carta (Letter)</option>
-                <option value="oficio">Oficio (Legal)</option>
-            </select>
-        </div>
-        <div class="flex-group">
-            <!-- Indicador Visual de Base de Datos en la Nube -->
-            <span id="cloud-status" style="font-size: 12px; font-weight: bold; color: #64748b; margin-right: 10px;">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Conectando...
-            </span>
-            <button class="btn btn-primary" onclick="guardarEnNubeCompleto()"><i class="fa-solid fa-cloud"></i> Respaldar en Nube</button>
-            <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Estudiante Activo</button>
-            <button class="btn btn-success" onclick="imprimirTodos()"><i class="fa-solid fa-print"></i> Imprimir Todos los Estudiantes</button>
-        </div>
-    </div>
-
-    <!-- Encabezado Oficial Escuela Quilacura -->
-    <div class="official-header">
-        <div class="header-top-grid">
-            <div class="logo-box" onclick="document.getElementById('file-input').click()">
-                <img id="logo-preview" src="https://via.placeholder.com/110?text=Subir+Logo">
-                <input type="file" id="file-input" style="display:none" accept="image/*" onchange="subirLogo(event)">
-                <div class="logo-text no-print">Modificar Logo</div>
-            </div>
-            <div class="header-title-block">
-                <h1 id="lbl-colegio-display">ESCUELA PARTICULAR Nº 8 "QUILACURA"</h1>
-                <h2 id="lbl-comuna-display">LAUTARO</h2>
-                <div style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase; color: var(--primary);">Informe de Notas de Rendimiento Escolar</div>
-            </div>
-            <div style="text-align: right; font-weight: bold; font-size: 13px;">
-                AÑO ESCOLAR<br>
-                <input type="text" id="meta-anio" class="form-control" style="text-align: center; font-weight: bold; font-size: 14px; border: 1px solid var(--border); margin-top: 5px;" value="2026" onchange="guardarMeta()">
-            </div>
-        </div>
-
-        <div class="meta-grid">
-            <div>
-                <table style="margin: 0; width: 100%;">
-                    <tr>
-                        <td style="border: 1px solid var(--border); font-weight: bold; width: 30%; text-align: left; padding: 5px; font-size: 11px; background: #f8fafc;">ESTABLECIMIENTO:</td>
-                        <td style="border: 1px solid var(--border); padding: 0;"><input type="text" id="meta-establecimiento" class="form-control" style="border: none; font-size: 11px;" value="ESCUELA PARTICULAR Nº 8 QUILACURA" onchange="guardarMeta()"></td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid var(--border); font-weight: bold; text-align: left; padding: 5px; font-size: 11px; background: #f8fafc;">COMUNA:</td>
-                        <td style="border: 1px solid var(--border); padding: 0;"><input type="text" id="meta-comuna" class="form-control" style="border: none; font-size: 11px;" value="LAUTARO" onchange="guardarMeta()"></td>
-                    </tr>
-                </table>
-            </div>
-            <div>
-                <table style="margin: 0; width: 100%;">
-                    <tr>
-                        <td style="border: 1px solid var(--border); font-weight: bold; width: 30%; text-align: left; padding: 5px; font-size: 11px; background: #f8fafc;">PROFESOR(A) JEFE:</td>
-                        <td style="border: 1px solid var(--border); padding: 0;"><input type="text" id="meta-profesor" class="form-control" style="border: none; font-size: 11px;" value="CARLOS GODOY AEDO" onchange="guardarMeta()"></td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid var(--border); font-weight: bold; text-align: left; padding: 5px; font-size: 11px; background: #f8fafc;">CURSO ACTUAL:</td>
-                        <td style="border: 1px solid var(--border); padding: 0;"><input type="text" id="meta-curso" class="form-control" style="border: none; font-size: 11px;" value="7° AÑO" onchange="guardarMeta()"></td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Layout de Contenidos -->
-    <div class="workspace">
-        <!-- Barra Lateral Izquierda (Registro Estudiantes y Plantillas) -->
-        <div class="sidebar no-print">
-            <!-- SECCIÓN SISTEMA DE CARGA AUTOMÁTICA -->
-            <div class="sidebar-section">
-                <h4 style="margin: 0 0 10px 0; color: var(--primary);"><i class="fa-solid fa-bolt"></i> Carga Rápida de Cursos</h4>
-                <select id="select-plantillas" class="form-control" onchange="cargarPlantillaSeleccionada()" style="margin-bottom: 8px;">
-                    <option value="">-- Seleccionar Curso --</option>
-                </select>
-                <button class="btn btn-success btn-sm" onclick="guardarCursoActualComoPlantilla()" style="width: 100%; justify-content: center; font-size: 12px; padding: 6px;">
-                    <i class="fa-solid fa-floppy-disk"></i> Guardar Curso Actual
-                </button>
-            </div>
-
-            <!-- SECCIÓN ESTUDIANTES -->
-            <div class="sidebar-section">
-                <h3><i class="fa-solid fa-users" style="color: var(--primary);"></i> Estudiantes</h3>
-                <div style="display: flex; gap: 5px; margin-bottom: 12px;">
-                    <input type="text" id="input-nuevo-estudiante" class="form-control" placeholder="Nombre completo...">
-                    <button class="btn btn-primary" onclick="registrarEstudiante()" style="padding: 8px 12px;">+</button>
-                </div>
-                <div class="student-list" id="lista-estudiantes"></div>
-            </div>
-        </div>
-
-        <!-- Área de Trabajo de Notas y Conceptos -->
-        <div id="panel-calificaciones">
-            <!-- Ficha del Estudiante Activo -->
-            <div class="profile-card">
-                <div>
-                    <span class="profile-title">Estudiante: <span id="nombre-estudiante-activo">Seleccione un estudiante</span></span>
-                    <span style="margin-left: 20px; font-size: 13px; color: var(--text);"><strong>Estado:</strong> 
-                        <select id="estado-estudiante-activo" class="form-control" style="display: inline-block; width: auto; padding: 3px 6px;" onchange="cambiarEstadoEstudiante()">
-                            <option value="Regular">Regular</option>
-                            <option value="Irregular">Irregular</option>
-                        </select>
+    <div class="app-window no-print">
+        
+        <!-- SIDEBAR DE CHATS (Estudiantes) -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-avatar" id="lbl-avatar-iniciales">SD</div>
+                <div class="header-actions">
+                    <!-- Botón para instalar PWA directo -->
+                    <i class="fa-solid fa-mobile-screen-button" id="btn-install-pwa" title="Instalar SigeDoc en Celular o PC" style="display: none;" onclick="instalarSigeDocApp()"></i>
+                    
+                    <span id="cloud-status" style="font-size: 11px; font-weight: bold; color: var(--wa-text-gray); margin-right: 5px;">
+                        <i class="fa-solid fa-cloud"></i>
                     </span>
+                    <i class="fa-solid fa-cloud-arrow-up" title="Sincronizar en Nube" onclick="guardarEnNubeCompleto()"></i>
+                    <i class="fa-solid fa-download" title="Descargar Respaldo JSON" onclick="descargarRespaldoLocal()"></i>
+                    <i class="fa-solid fa-upload" title="Subir Respaldo JSON" onclick="document.getElementById('import-file-input').click()"></i>
+                    <input type="file" id="import-file-input" style="display:none" accept=".json" onchange="importarRespaldoLocal(event)">
                 </div>
-                <button class="btn btn-danger btn-sm no-print" onclick="quitarEstudianteActivo()"><i class="fa-solid fa-trash"></i> Eliminar Estudiante</button>
             </div>
 
-            <!-- Panel para Agregar Asignaturas -->
-            <div class="no-print" style="display: flex; gap: 10px; margin-bottom: 20px; background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px; align-items: center;">
-                <input type="text" id="input-nueva-asignatura" class="form-control" placeholder="Agregar nueva asignatura...">
-                <button class="btn btn-primary" onclick="agregarAsignatura()"><i class="fa-solid fa-plus"></i> Añadir Ramo</button>
+            <div class="search-container">
+                <div class="search-bar-wrapper">
+                    <i class="fa-solid fa-search" style="color: var(--wa-text-gray);"></i>
+                    <input type="text" id="input-busqueda-estudiante" placeholder="Buscar o registrar estudiante..." oninput="filtrarEstudiantesListado()">
+                </div>
+                <div class="flex gap-1.5">
+                    <select id="select-plantillas" class="border border-slate-300 rounded px-2 py-1 text-xs bg-white w-full outline-none" style="height: 32px;" onchange="cargarPlantillaSeleccionada()">
+                        <option value="">-- Carga Rápida Curso --</option>
+                    </select>
+                    <button class="bg-[#374151] text-white hover:bg-gray-800 rounded px-3 text-xs font-bold shrink-0" style="height: 32px;" onclick="guardarCursoActualComoPlantilla()" title="Guardar como plantilla"><i class="fa-solid fa-save"></i></button>
+                </div>
             </div>
 
-            <!-- Tabla de Calificaciones Oficial Perfectamente Alineada -->
-            <table class="bordered">
-                <thead>
-                    <tr>
-                        <th rowspan="2" style="width: 25%;">Asignaturas</th>
-                        <th id="header-s1" colspan="4" style="background: #f1f5f9;">Primer Semestre 
-                            <button class="btn btn-sm btn-primary no-print" onclick="ajustarColumnas('s1', 1)">+</button>
-                            <button class="btn btn-sm btn-danger no-print" onclick="ajustarColumnas('s1', -1)">-</button>
-                        </th>
-                        <th rowspan="2" style="background: #e0f2fe; width: 6%; color: var(--primary);">S1</th>
-                        <th id="header-s2" colspan="4" style="background: #f1f5f9;">Segundo Semestre 
-                            <button class="btn btn-sm btn-primary no-print" onclick="ajustarColumnas('s2', 1)">+</button>
-                            <button class="btn btn-sm btn-danger no-print" onclick="ajustarColumnas('s2', -1)">-</button>
-                        </th>
-                        <th rowspan="2" style="background: #e0f2fe; width: 6%; color: var(--primary);">S2</th>
-                        <th rowspan="2" style="background: var(--success-light); color: var(--success); width: 8%;">Prom. Anual</th>
-                        <th rowspan="2" class="no-print" style="width: 5%;">Quitar</th>
-                    </tr>
-                    <tr id="subheaders-notas-fila">
-                        <!-- Generado dinámicamente -->
-                    </tr>
-                </thead>
-                <tbody id="tabla-notas-cuerpo"></tbody>
-            </table>
+            <!-- Listado de Estudiantes (Conversaciones) -->
+            <div class="chat-list" id="lista-estudiantes">
+                <!-- Se inyecta dinámicamente -->
+            </div>
+        </div>
 
-            <!-- Contenedor Unificado para Conceptos y Asistencia (Evita saltos de página huérfanos) -->
-            <div class="prevent-break">
-                <!-- Tabla de Conceptos de Desarrollo Personal -->
-                <h3 style="margin-top: 15px; font-size: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-star"></i> Conceptos de Desarrollo Personal</h3>
-                <table class="bordered">
-                    <thead>
-                        <tr>
-                            <th style="text-align: left; padding-left: 10px; width: 60%;">Conceptos / Indicadores</th>
-                            <th style="width: 20%;">I Semestre</th>
-                            <th style="width: 20%;">II Semestre</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-conceptos-cuerpo"></tbody>
-                </table>
+        <!-- VENTANA DE CONVERSACIÓN (Evaluaciones en burbujas) -->
+        <div class="chat-window">
+            
+            <!-- Pantalla por Defecto -->
+            <div class="welcome-screen" id="welcome-screen-wa">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <h2>SigeDoc Web</h2>
+                <p>Gestiona calificaciones, evalúa el desarrollo personal e imprime reportes oficiales directos al MINEDUC. Diseño adaptativo e instalación multiplataforma.</p>
+                <div id="pwa-guide-banner" class="mt-4 p-3 bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-600 max-w-sm">
+                    <i class="fa-solid fa-circle-info text-slate-800"></i> <strong>Instalación Directa:</strong><br>
+                    Para usarlo sin navegador, haz clic en el botón de teléfono <i class="fa-solid fa-mobile-screen-button"></i> arriba a la izquierda o selecciona "Agregar a la pantalla de inicio".
+                </div>
+            </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-top: 15px;">
-                    <!-- Leyenda de Conceptos -->
-                    <table class="bordered" style="margin-top: 0;">
-                        <thead>
-                            <tr><th colspan="2" style="background: #f1f5f9; color: var(--primary-dark);">Escala de Calificación Conceptual</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td style="font-weight: bold; width: 30%;">S</td><td>Siempre</td></tr>
-                            <tr><td style="font-weight: bold;">F</td><td>Frecuentemente</td></tr>
-                            <tr><td style="font-weight: bold;">R/V</td><td>Rara Vez</td></tr>
-                            <tr><td style="font-weight: bold;">N</td><td>Nunca</td></tr>
-                            <tr><td style="font-weight: bold;">N/O</td><td>No Observado</td></tr>
-                        </tbody>
-                    </table>
+            <!-- Chat Activo -->
+            <div id="active-chat-wa" style="display: none; flex-direction: column; height: 100%;">
+                
+                <!-- Cabecera del Chat -->
+                <div class="chat-header">
+                    <div class="chat-student-profile">
+                        <div class="student-avatar" id="lbl-avatar-estudiante-activo">VI</div>
+                        <div>
+                            <div class="chat-student-name" id="lbl-nombre-estudiante-activo">VÍCTOR ALONSO CÓRDOVA MARINAO</div>
+                            <div class="chat-student-status">
+                                Estado: 
+                                <select id="estado-estudiante-activo" onchange="cambiarEstadoEstudiante()" style="border: none; background: transparent; font-weight: bold; color: var(--wa-gray-light); cursor: pointer; outline: none;">
+                                    <option value="Regular">Regular</option>
+                                    <option value="Irregular">Irregular</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-[#374151] hover:bg-gray-800 text-white font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 transition" onclick="imprimirActivo()"><i class="fa-solid fa-print"></i> Imprimir Activo</button>
+                        <button class="bg-slate-500 hover:bg-slate-600 text-white font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 transition" onclick="imprimirTodos()"><i class="fa-solid fa-users"></i> Imprimir Todos</button>
+                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-2.5 py-1.5 rounded transition" onclick="quitarEstudianteActivo()"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
 
-                    <!-- Bloque de Asistencia -->
-                    <div>
-                        <h3 style="font-size: 15px; border-bottom: 2px solid var(--success); padding-bottom: 5px; color: var(--success); margin-top: 0;"><i class="fa-solid fa-calendar"></i> Registro de Asistencia</h3>
+                <div class="chat-messages-area" id="chat-messages-container">
+                    
+                    <!-- Burbuja 1: Información de la Escuela -->
+                    <div class="message-bubble bubble-in">
+                        <div class="bubble-title">
+                            <span><i class="fa-solid fa-school"></i> Datos del Establecimiento</span>
+                            <i class="fa-solid fa-pen" style="font-size:11px; color: var(--wa-text-gray);"></i>
+                        </div>
+                        <div class="meta-form-grid">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Establecimiento:</label>
+                                <input type="text" id="meta-establecimiento" class="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800" onchange="guardarMeta()">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Comuna:</label>
+                                <input type="text" id="meta-comuna" class="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800" onchange="guardarMeta()">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Profesor Jefe:</label>
+                                <input type="text" id="meta-profesor" class="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800" onchange="guardarMeta()">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Curso y Año:</label>
+                                <div class="flex gap-1">
+                                    <input type="text" id="meta-curso" class="w-full border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800" onchange="guardarMeta()" placeholder="Curso">
+                                    <input type="text" id="meta-anio" class="w-20 border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-slate-800 text-center" onchange="guardarMeta()" placeholder="Año">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Burbuja 2: Planilla de Calificaciones -->
+                    <div class="message-bubble bubble-out w-full max-w-[95%]">
+                        <div class="bubble-title">
+                            <span class="text-slate-700"><i class="fa-solid fa-list-check"></i> Calificaciones de Asignaturas</span>
+                            <div class="flex gap-1 items-center">
+                                <span class="text-[10px] text-slate-500 font-semibold normal-case">Columnas:</span>
+                                <button class="bg-[#374151] text-white text-[9px] font-bold px-1.5 py-0.5 rounded" onclick="ajustarColumnas('s1', 1)">S1 +</button>
+                                <button class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded" onclick="ajustarColumnas('s1', -1)">S1 -</button>
+                                <button class="bg-[#374151] text-white text-[9px] font-bold px-1.5 py-0.5 rounded" onclick="ajustarColumnas('s2', 1)">S2 +</button>
+                                <button class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded" onclick="ajustarColumnas('s2', -1)">S2 -</button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="bordered">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2" class="w-[25%] text-left pl-2">Asignaturas</th>
+                                        <th id="header-s1" colspan="4">Primer Semestre</th>
+                                        <th rowspan="2" class="bg-slate-200 w-[6%] text-slate-800 font-bold">S1</th>
+                                        <th id="header-s2" colspan="4">Segundo Semestre</th>
+                                        <th rowspan="2" class="bg-slate-200 w-[6%] text-slate-800 font-bold">S2</th>
+                                        <th rowspan="2" class="bg-slate-300 text-slate-800 font-bold w-[8%]">Anual</th>
+                                        <th rowspan="2" class="no-print w-[5%]">Borrar</th>
+                                    </tr>
+                                    <tr id="subheaders-notas-fila">
+                                        <!-- Dinámico -->
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-notas-cuerpo"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Burbuja 3: Conceptos de Desarrollo Personal -->
+                    <div class="message-bubble bubble-in w-full max-w-[90%]">
+                        <div class="bubble-title">
+                            <span><i class="fa-solid fa-award"></i> Conceptos de Desarrollo Personal</span>
+                            <span class="text-xs text-slate-500 font-semibold normal-case">Evaluación Formativa</span>
+                        </div>
+                        <table class="bordered">
+                            <thead>
+                                <tr>
+                                    <th class="text-left pl-2 w-[60%]">Conceptos / Indicadores</th>
+                                    <th class="w-[20%]">I Semestre</th>
+                                    <th class="w-[20%]">II Semestre</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-conceptos-cuerpo"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Burbuja 4: Asistencia -->
+                    <div class="message-bubble bubble-out w-full max-w-sm">
+                        <div class="bubble-title">
+                            <span class="text-slate-700"><i class="fa-solid fa-calendar-days"></i> Registro de Asistencia</span>
+                        </div>
                         <table class="bordered">
                             <thead>
                                 <tr>
                                     <th>Días Trabajados</th>
                                     <th>Días Asistidos</th>
-                                    <th style="background: var(--success-light); color: var(--success);">% Asistencia</th>
+                                    <th class="bg-slate-200 text-slate-800">% Asistencia</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><input type="number" id="asist-trabajados" class="form-control" style="text-align: center; font-weight: bold;" oninput="calcularAsistencia()" value="100"></td>
-                                    <td><input type="number" id="asist-asistidos" class="form-control" style="text-align: center; font-weight: bold;" oninput="calcularAsistencia()" value="95"></td>
-                                    <td style="font-weight: bold; font-size: 14px; background: var(--success-light); color: var(--success);"><span id="lbl-porcentaje">95.0</span>%</td>
+                                    <td><input type="number" id="asist-trabajados" class="w-full text-center font-bold bg-transparent outline-none" oninput="calcularAsistencia()"></td>
+                                    <td><input type="number" id="asist-asistidos" class="w-full text-center font-bold bg-transparent outline-none" oninput="calcularAsistencia()"></td>
+                                    <td class="font-bold text-sm bg-slate-100 text-slate-800"><span id="lbl-porcentaje">0.0</span>%</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+
                 </div>
 
-                <!-- Sección de Firmas Oficiales para Impresión -->
-                <div class="signature-section">
-                    <div>
-                        <div class="signature-line" id="lbl-firma-docente">CARLOS GODOY AEDO</div>
-                        <div>Profesor(a) Jefe</div>
-                    </div>
-                    <div>
-                        <div class="signature-line" style="width: 220px;">Directora Escuela Quilacura</div>
-                        <div>Firma y Timbre</div>
-                    </div>
+                <div class="chat-input-bar">
+                    <i class="fa-regular fa-face-smile text-slate-500 text-xl cursor-pointer"></i>
+                    <i class="fa-solid fa-paperclip text-slate-500 text-lg cursor-pointer" onclick="document.getElementById('logo-file-input').click()" title="Subir Logo de la Escuela"></i>
+                    <input type="file" id="logo-file-input" style="display:none" accept="image/*" onchange="subirLogo(event)">
+                    
+                    <input type="text" id="input-nueva-asignatura-chat" placeholder="Escribe una asignatura y presiona Enter para añadirla a la libreta..." onkeydown="chequearEnterAsignatura(event)">
+                    <button class="btn-send" onclick="agregarAsignaturaDesdeInput()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FORMATO DE IMPRESIÓN OFICIAL DEL MINEDUC (OCULTO EN PANTALLA) -->
+    <div id="contenedor-impresion-mineduc" class="print-only-layout"></div>
+
+    <!-- MODAL DE CONFIGURACIÓN DE RED COMPARTIDA -->
+    <div id="modal-net-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modal-content-panel">
+            <div class="bg-[#374151] text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm uppercase tracking-wide flex items-center gap-2"><i class="fa-solid fa-network-wired"></i> Red de Sincronización</h3>
+                <i class="fa-solid fa-times cursor-pointer text-lg hover:text-slate-300" onclick="cerrarConfigRed()"></i>
+            </div>
+            <div class="p-5 flex flex-col gap-4">
+                <p class="text-xs text-slate-500 leading-relaxed">Conéctate a una Red para colaborar con otros profesores. Si ingresan el mismo código, verán y completarán las notas al mismo tiempo.</p>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-600 block uppercase mb-1">ID del Curso o Red (Ej: QUILACURA-7A)</label>
+                    <input type="text" id="input-net-room-id" placeholder="Ingresa el identificador único..." class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-slate-800 outline-none font-bold">
+                </div>
+                <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
+                    <button class="bg-slate-500 text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-600 transition" onclick="cerrarConfigRed()">Cerrar</button>
+                    <button class="bg-[#374151] text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-800 transition" onclick="conectarARoomEnLaNube()">Conectar</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Lógica y Vinculación con la Base de Datos en la Nube -->
+    <!-- CONTENEDORES DE INTERACCIONES FLOTANTES (TOASTS / CONFIRMACIÓN) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <div id="modal-confirmacion-custom" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden">
+            <div class="p-5 flex flex-col gap-3">
+                <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2" id="lbl-confirm-titulo"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Confirmación</h4>
+                <p class="text-xs text-slate-600 leading-relaxed" id="lbl-confirm-mensaje">¿Estás seguro de que deseas realizar esta acción?</p>
+                <div class="flex gap-2 justify-end pt-3 border-t border-slate-100">
+                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3.5 py-1.5 rounded transition" id="btn-confirm-cancelar">Cancelar</button>
+                    <button class="bg-[#374151] hover:bg-gray-800 text-white font-bold text-xs px-3.5 py-1.5 rounded transition" id="btn-confirm-aceptar">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
     import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 
-    // Configuración proveída por el Canvas
     const firebaseConfig = JSON.parse(__firebase_config);
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -552,7 +748,6 @@
 
     let userLogged = null;
 
-    // Autenticación inicial obligatoria antes de consultar (Regla 3)
     const initAuth = async () => {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
             await signInWithCustomToken(auth, __initial_auth_token);
@@ -562,57 +757,52 @@
     };
 
     initAuth().catch(err => {
-        console.error("Error en autenticación de la base de datos:", err);
-        document.getElementById('cloud-status').innerHTML = `<span style="color:var(--danger)"><i class="fa-solid fa-circle-exclamation"></i> Sin Conexión</span>`;
+        console.error("Error de autenticación Firebase:", err);
+        document.getElementById('cloud-status').innerHTML = `<span class="text-red-600"><i class="fa-solid fa-wifi-slash"></i> Offline</span>`;
     });
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             userLogged = user;
-            document.getElementById('cloud-status').innerHTML = `<span style="color:var(--success)"><i class="fa-solid fa-circle-check"></i> Conectado a la Nube</span>`;
+            document.getElementById('cloud-status').innerHTML = `<span class="text-slate-600"><i class="fa-solid fa-cloud"></i> Sincronizado</span>`;
             
-            // Intentar recuperar el respaldo desde la nube (Regla 1)
             try {
                 const docRef = doc(dbCloud, 'artifacts', appId, 'users', user.uid, 'datos', 'completo');
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const datosNube = docSnap.data();
-                    if (confirm("☁ ¡Hemos encontrado un respaldo de tus cursos en la nube!\n¿Deseas sincronizar y cargar los datos guardados?")) {
-                        window.db = datosNube;
-                        window.guardarPersistencia();
-                        window.iniciarApp();
-                    }
+                    window.db = datosNube;
+                    window.guardarPersistencia();
+                    window.iniciarApp();
                 }
             } catch (error) {
-                console.error("Error al leer el respaldo de la base de datos:", error);
+                console.error("Error cargando backup:", error);
             }
         }
     });
 
-    // Sincronización manual a la nube
     window.guardarEnNubeCompleto = async () => {
         if (!userLogged) {
-            alert("No estás conectado a internet o la autenticación sigue cargando.");
+            mostrarAlerta("No se ha completado la conexión", "error");
             return;
         }
 
-        document.getElementById('cloud-status').innerHTML = `<span><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...</span>`;
+        document.getElementById('cloud-status').innerHTML = `<span><i class="fa-solid fa-spinner fa-spin"></i> Guardando...</span>`;
         try {
             const docRef = doc(dbCloud, 'artifacts', appId, 'users', userLogged.uid, 'datos', 'completo');
             await setDoc(docRef, window.db);
             
-            document.getElementById('cloud-status').innerHTML = `<span style="color:var(--success)"><i class="fa-solid fa-circle-check"></i> Sincronizado</span>`;
-            alert("✅ ¡Base de datos respaldada con éxito en la Nube!\nTodos tus cursos, estudiantes y promedios están a salvo.");
+            document.getElementById('cloud-status').innerHTML = `<span class="text-slate-600"><i class="fa-solid fa-cloud"></i> Sincronizado</span>`;
+            mostrarAlerta("¡Respaldo guardado con éxito en la nube!", "success");
         } catch (e) {
-            console.error("Error al guardar en la nube:", e);
-            document.getElementById('cloud-status').innerHTML = `<span style="color:var(--danger)"><i class="fa-solid fa-circle-xmark"></i> Error de Sincronización</span>`;
-            alert("Hubo un error al sincronizar con el servidor de la nube. Intentaremos guardar localmente.");
+            console.error("Error guardando:", e);
+            document.getElementById('cloud-status').innerHTML = `<span class="text-red-600"><i class="fa-solid fa-wifi-slash"></i> Error</span>`;
+            mostrarAlerta("Error al sincronizar con la nube", "error");
         }
     };
 </script>
 
 <script>
-    // Inicialización y persistencia de la base de datos local
     let db = JSON.parse(localStorage.getItem('notafacil_v3_db')) || {
         estudiantes: [],
         meta: {
@@ -631,6 +821,7 @@
     let estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
     let colsS1 = 4;
     let colsS2 = 4;
+    let busquedaTerm = '';
 
     const listaConceptosDefecto = [
         "1.- Es capaz de expresar sus opiniones y sentimiento.",
@@ -732,23 +923,23 @@
             guardarPersistencia();
         }
 
-        // Cargar Metadatos
-        document.getElementById('meta-establecimiento').value = db.meta.establecimiento;
-        document.getElementById('meta-comuna').value = db.meta.comuna;
-        document.getElementById('meta-profesor').value = db.meta.profesor;
-        document.getElementById('meta-curso').value = db.meta.curso;
-        document.getElementById('meta-anio').value = db.meta.anio;
-        document.getElementById('paper-format').value = db.meta.formato || 'carta';
+        // Cargar Metadatos en inputs
+        document.getElementById('meta-establecimiento').value = db.meta.establecimiento || '';
+        document.getElementById('meta-comuna').value = db.meta.comuna || '';
+        document.getElementById('meta-profesor').value = db.meta.profesor || '';
+        document.getElementById('meta-curso').value = db.meta.curso || '';
+        document.getElementById('meta-anio').value = db.meta.anio || '';
 
-        // Actualizar textos institucionales
-        document.getElementById('lbl-colegio-display').innerText = db.meta.establecimiento.toUpperCase();
-        document.getElementById('lbl-comuna-display').innerText = db.meta.comuna.toUpperCase();
-        document.getElementById('lbl-firma-docente').innerText = db.meta.profesor.toUpperCase();
+        // Iniciales del docente
+        const nombresProf = (db.meta.profesor || 'CARLOS GODOY').split(' ');
+        let inicialesProf = "CG";
+        if(nombresProf.length >= 2 && nombresProf[0] && nombresProf[1]) {
+            inicialesProf = (nombresProf[0][0] + nombresProf[1][0]).toUpperCase();
+        } else if(nombresProf[0]) {
+            inicialesProf = nombresProf[0].slice(0,2).toUpperCase();
+        }
+        document.getElementById('lbl-avatar-iniciales').innerText = inicialesProf;
 
-        const logo = localStorage.getItem('notafacil_v3_logo');
-        if(logo) document.getElementById('logo-preview').src = logo;
-
-        cambiarFormato();
         renderEstudiantes();
         renderEvaluacion();
         renderSelectorPlantillas();
@@ -762,12 +953,6 @@
         db.meta.profesor = document.getElementById('meta-profesor').value;
         db.meta.curso = document.getElementById('meta-curso').value;
         db.meta.anio = document.getElementById('meta-anio').value;
-        db.meta.formato = document.getElementById('paper-format').value;
-
-        document.getElementById('lbl-colegio-display').innerText = db.meta.establecimiento.toUpperCase();
-        document.getElementById('lbl-comuna-display').innerText = db.meta.comuna.toUpperCase();
-        document.getElementById('lbl-firma-docente').innerText = db.meta.profesor.toUpperCase();
-
         guardarPersistencia();
     }
 
@@ -776,21 +961,10 @@
     }
     window.guardarPersistencia = guardarPersistencia;
 
-    function cambiarFormato() {
-        const fmt = document.getElementById('paper-format').value;
-        const mainBody = document.getElementById('main-body');
-        if(fmt === 'oficio') {
-            mainBody.classList.add('format-oficio');
-        } else {
-            mainBody.classList.remove('format-oficio');
-        }
-        guardarMeta();
-    }
-
     /* SISTEMA DE PLANTILLAS DINÁMICO */
     function renderSelectorPlantillas() {
         const select = document.getElementById('select-plantillas');
-        select.innerHTML = '<option value="">-- Seleccionar Curso --</option>';
+        select.innerHTML = '<option value="">-- Carga Rápida Curso --</option>';
         
         db.plantillas.forEach((p, index) => {
             const opt = document.createElement('option');
@@ -805,7 +979,7 @@
         const idx = select.value;
         if(idx === "") return;
 
-        if(confirm(`¿Deseas cargar el curso "${db.plantillas[idx].nombrePlantilla}"?\nEsto reemplazará la lista de estudiantes actual.`)) {
+        mostrarConfirmacion(`¿Deseas cargar el curso "${db.plantillas[idx].nombrePlantilla}"?\nEsto reemplazará todos los datos actuales.`, () => {
             const plantilla = db.plantillas[idx];
             
             db.meta.establecimiento = plantilla.meta.establecimiento;
@@ -819,7 +993,8 @@
 
             guardarPersistencia();
             iniciarApp();
-        }
+            mostrarAlerta("Curso cargado correctamente", "success");
+        });
         select.value = "";
     }
 
@@ -843,13 +1018,16 @@
         db.plantillas.push(nuevaPlantilla);
         guardarPersistencia();
         renderSelectorPlantillas();
-        alert(`✔ ¡Curso guardado como plantilla con éxito!\nNombre: "${templateName}"\nAhora puedes respaldarlo en la nube.`);
+        mostrarAlerta(`Curso "${templateName}" guardado con éxito`, "success");
     }
 
-    /* MÓDULO ESTUDIANTES */
-    function registrarEstudiante() {
-        const input = document.getElementById('input-nuevo-estudiante');
-        if(!input.value.trim()) return;
+    /* REGISTRO Y GESTIÓN DE ALUMNOS */
+    function registrarEstudianteRapido() {
+        const input = document.getElementById('input-busqueda-estudiante');
+        if(!input.value.trim()) {
+            mostrarAlerta("Escribe el nombre del estudiante para ingresarlo", "warning");
+            return;
+        }
 
         db.estudiantes.push({
             nombre: input.value.trim().toUpperCase(),
@@ -865,16 +1043,78 @@
         guardarPersistencia();
         renderEstudiantes();
         renderEvaluacion();
+        mostrarAlerta("Estudiante añadido", "success");
+    }
+
+    function filtrarEstudiantesListado() {
+        busquedaTerm = document.getElementById('input-busqueda-estudiante').value.toLowerCase();
+        renderEstudiantes();
     }
 
     function renderEstudiantes() {
         const listDiv = document.getElementById('lista-estudiantes');
         listDiv.innerHTML = '';
 
-        db.estudiantes.forEach((est, idx) => {
+        const estudiantesFiltrados = db.estudiantes.map((est, idx) => ({ est, originalIdx: idx }))
+            .filter(item => item.est.nombre.toLowerCase().includes(busquedaTerm));
+
+        if(estudiantesFiltrados.length === 0 && busquedaTerm.trim().length > 0) {
+            listDiv.innerHTML = `
+                <div class="p-4 text-center">
+                    <p class="text-xs text-slate-400 mb-2">"${busquedaTerm.toUpperCase()}" no existe</p>
+                    <button class="bg-[#374151] hover:bg-gray-800 text-white font-bold text-[10px] px-3 py-1.5 rounded transition" onclick="registrarEstudianteRapido()"><i class="fa-solid fa-user-plus"></i> Registrar en Curso</button>
+                </div>
+            `;
+            return;
+        } else if (estudiantesFiltrados.length === 0) {
+            listDiv.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Sin resultados</div>`;
+            return;
+        }
+
+        estudiantesFiltrados.forEach(item => {
+            const est = item.est;
+            const idx = item.originalIdx;
+            
+            const nombres = est.nombre.split(' ');
+            let iniciales = "ES";
+            if(nombres.length >= 2 && nombres[0] && nombres[1]) {
+                iniciales = (nombres[0][0] + nombres[1][0]).toUpperCase();
+            } else if(nombres[0]) {
+                iniciales = nombres[0].slice(0, 2).toUpperCase();
+            }
+
+            // Calcular promedio general
+            let promTotal = "S/N";
+            let sumProms = 0, cantProms = 0;
+            est.asignaturas.forEach(ramo => {
+                let promS1 = calcularSemestrePromedio(ramo.notasS1 || []);
+                let promS2 = calcularSemestrePromedio(ramo.notasS2 || []);
+                if(promS1 !== "-" && promS2 !== "-") {
+                    let p1 = parseFloat(promS1.replace(',','.'));
+                    let p2 = parseFloat(promS2.replace(',','.'));
+                    sumProms += aproximarNota((p1 + p2) / 2);
+                    cantProms++;
+                }
+            });
+            if(cantProms > 0) {
+                promTotal = (sumProms / cantProms).toFixed(1).replace('.', ',');
+            }
+
             const tab = document.createElement('div');
-            tab.className = `student-tab ${idx === estudianteIdx ? 'active' : ''}`;
-            tab.innerHTML = `<span><i class="fa-solid fa-user-graduate"></i> ${est.nombre}</span>`;
+            tab.className = `chat-item ${idx === estudianteIdx ? 'active' : ''}`;
+            tab.innerHTML = `
+                <div class="student-avatar" style="background-color: ${idx === estudianteIdx ? 'var(--wa-gray-dark)' : '#64748b'};">${iniciales}</div>
+                <div class="chat-info">
+                    <div class="chat-info-top">
+                        <div class="chat-name truncate max-w-[150px]" title="${est.nombre}">${est.nombre}</div>
+                        <div class="chat-time">Prom: ${promTotal}</div>
+                    </div>
+                    <div class="chat-message-preview">
+                        <span>Estado: ${est.estado}</span>
+                        <span class="text-[9px] font-bold text-[#374151]">${est.estado === 'Regular' ? '✔' : '⚠'}</span>
+                    </div>
+                </div>
+            `;
             tab.onclick = () => {
                 mouseClickStudent(idx);
             };
@@ -889,26 +1129,41 @@
     }
 
     function renderEvaluacion() {
-        if(estudianteIdx === -1) {
-            document.getElementById('nombre-estudiante-activo').innerText = "Seleccione un estudiante";
-            document.getElementById('tabla-notas-cuerpo').innerHTML = '';
-            document.getElementById('tabla-conceptos-cuerpo').innerHTML = '';
+        const welcome = document.getElementById('welcome-screen-wa');
+        const activeChat = document.getElementById('active-chat-wa');
+
+        if(estudianteIdx === -1 || !db.estudiantes[estudianteIdx]) {
+            welcome.style.display = 'flex';
+            activeChat.style.display = 'none';
             return;
         }
 
+        welcome.style.display = 'none';
+        activeChat.style.display = 'flex';
+
         const est = db.estudiantes[estudianteIdx];
-        document.getElementById('nombre-estudiante-activo').innerText = est.nombre;
+        document.getElementById('lbl-nombre-estudiante-activo').innerText = est.nombre;
         document.getElementById('estado-estudiante-activo').value = est.estado;
         document.getElementById('asist-trabajados').value = est.diasTrabajados || 100;
         document.getElementById('asist-asistidos').value = est.diasAsistidos || 95;
+
+        // Avatar del chat
+        const nombres = est.nombre.split(' ');
+        let iniciales = "ES";
+        if(nombres.length >= 2 && nombres[0] && nombres[1]) {
+            iniciales = (nombres[0][0] + nombres[1][0]).toUpperCase();
+        } else if(nombres[0]) {
+            iniciales = nombres[0].slice(0, 2).toUpperCase();
+        }
+        document.getElementById('lbl-avatar-estudiante-activo').innerText = iniciales;
 
         // Renderizar Encabezados Dinámicos de Notas
         document.getElementById('header-s1').colSpan = colsS1;
         document.getElementById('header-s2').colSpan = colsS2;
 
         let subHeadersHtml = '';
-        for(let i=1; i<=colsS1; i++) subHeadersHtml += `<th style="width: 4%;">${i}</th>`;
-        for(let i=1; i<=colsS2; i++) subHeadersHtml += `<th style="width: 4%;">${i}</th>`;
+        for(let i=1; i<=colsS1; i++) subHeadersHtml += `<th class="p-1 text-center w-8 text-[10px]">${i}</th>`;
+        for(let i=1; i<=colsS2; i++) subHeadersHtml += `<th class="p-1 text-center w-8 text-[10px]">${i}</th>`;
         document.getElementById('subheaders-notas-fila').innerHTML = subHeadersHtml;
 
         // Renderizar Cuerpo de Tabla de Notas
@@ -918,23 +1173,23 @@
         est.asignaturas.forEach((ramo, rIdx) => {
             const tr = document.createElement('tr');
             
-            let rowHTML = `<td style="text-align:left; font-weight:bold; font-size:11px; padding-left:10px;">${ramo.nombre}</td>`;
+            let rowHTML = `<td class="text-left font-bold pl-2 text-xs border border-slate-300 bg-slate-50">${ramo.nombre}</td>`;
             
             // Semestre 1 inputs
             for(let i=0; i<colsS1; i++) {
                 let nVal = ramo.notasS1 ? (ramo.notasS1[i] || '') : '';
-                rowHTML += `<td><input type="text" class="input-nota" value="${nVal}" onchange="editarNota(${rIdx}, 's1', ${i}, this.value)"></td>`;
+                rowHTML += `<td class="p-0 border border-slate-300"><input type="text" class="input-nota w-full text-center text-xs font-semibold outline-none py-1" value="${nVal}" onchange="editarNota(${rIdx}, 's1', ${i}, this.value)"></td>`;
             }
             let promS1 = calcularSemestrePromedio(ramo.notasS1 || []);
-            rowHTML += `<td style="font-weight:bold; background:#e0f2fe; font-size:12px;">${promS1}</td>`;
+            rowHTML += `<td class="font-bold bg-slate-100 text-slate-800 text-center border border-slate-300 text-xs">${promS1}</td>`;
 
             // Semestre 2 inputs
             for(let i=0; i<colsS2; i++) {
                 let nVal = ramo.notasS2 ? (ramo.notasS2[i] || '') : '';
-                rowHTML += `<td><input type="text" class="input-nota" value="${nVal}" onchange="editarNota(${rIdx}, 's2', ${i}, this.value)"></td>`;
+                rowHTML += `<td class="p-0 border border-slate-300"><input type="text" class="input-nota w-full text-center text-xs font-semibold outline-none py-1" value="${nVal}" onchange="editarNota(${rIdx}, 's2', ${i}, this.value)"></td>`;
             }
             let promS2 = calcularSemestrePromedio(ramo.notasS2 || []);
-            rowHTML += `<td style="font-weight:bold; background:#e0f2fe; font-size:12px;">${promS2}</td>`;
+            rowHTML += `<td class="font-bold bg-slate-100 text-slate-800 text-center border border-slate-300 text-xs">${promS2}</td>`;
 
             // Promedio Anual aproximado
             let promAnual = "-";
@@ -943,8 +1198,8 @@
                 let p2 = parseFloat(promS2.replace(',','.'));
                 promAnual = aproximarNota((p1 + p2) / 2).toFixed(1).replace('.',',');
             }
-            rowHTML += `<td style="font-weight:bold; background:var(--success-light); color:var(--success); font-size:13px;">${promAnual}</td>`;
-            rowHTML += `<td class="no-print"><button class="btn btn-danger btn-sm" onclick="eliminarAsignatura(${rIdx})" style="padding:2px 6px;">×</button></td>`;
+            rowHTML += `<td class="font-bold bg-slate-200 text-slate-900 text-center border border-slate-300 text-xs">${promAnual}</td>`;
+            rowHTML += `<td class="no-print p-1 text-center border border-slate-300"><button class="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-0.5 rounded text-[10px]" onclick="eliminarAsignatura(${rIdx})">×</button></td>`;
             
             tr.innerHTML = rowHTML;
             tbodyNotas.appendChild(tr);
@@ -959,18 +1214,18 @@
         est.conceptos.forEach((c, cIdx) => {
             const tr = document.createElement('tr');
             
-            let s1Select = `<select class="form-control" style="width:70px; padding:2px; font-weight:bold; text-align:center; border-color: var(--border);" onchange="editarConcepto(${cIdx}, 's1', this.value)">`;
+            let s1Select = `<select class="border border-slate-300 rounded px-1 py-0.5 text-xs font-bold text-center bg-white outline-none focus:border-slate-800 cursor-pointer" onchange="editarConcepto(${cIdx}, 's1', this.value)">`;
             s1Select += opcionesCalificacion.map(opt => `<option value="${opt}" ${c.s1 === opt ? 'selected' : ''}>${opt}</option>`).join('');
             s1Select += `</select>`;
 
-            let s2Select = `<select class="form-control" style="width:70px; padding:2px; font-weight:bold; text-align:center; border-color: var(--border);" onchange="editarConcepto(${cIdx}, 's2', this.value)">`;
+            let s2Select = `<select class="border border-slate-300 rounded px-1 py-0.5 text-xs font-bold text-center bg-white outline-none focus:border-slate-800 cursor-pointer" onchange="editarConcepto(${cIdx}, 's2', this.value)">`;
             s2Select += opcionesCalificacion.map(opt => `<option value="${opt}" ${c.s2 === opt ? 'selected' : ''}>${opt}</option>`).join('');
             s2Select += `</select>`;
 
             tr.innerHTML = `
-                <td style="text-align:left; padding-left:10px; font-size:11px;">${c.descriptor}</td>
-                <td style="display:flex; justify-content:center; border:none; padding:4px;">${s1Select}</td>
-                <td>${s2Select}</td>
+                <td class="text-left pl-2 text-xs border border-slate-300">${c.descriptor}</td>
+                <td class="border border-slate-300 p-1 text-center">${s1Select}</td>
+                <td class="border border-slate-300 p-1 text-center">${s2Select}</td>
             `;
             tbodyConceptos.appendChild(tr);
         });
@@ -998,6 +1253,7 @@
 
         guardarPersistencia();
         renderEvaluacion();
+        renderEstudiantes();
     }
 
     function calcularSemestrePromedio(notasArray) {
@@ -1024,8 +1280,15 @@
         renderEvaluacion();
     }
 
-    function agregarAsignatura() {
-        const input = document.getElementById('input-nueva-asignatura');
+    /* Entrada de Chat rápida para añadir ramos */
+    function chequearEnterAsignatura(e) {
+        if (e.key === 'Enter') {
+            agregarAsignaturaDesdeInput();
+        }
+    }
+
+    function agregarAsignaturaDesdeInput() {
+        const input = document.getElementById('input-nueva-asignatura-chat');
         if(!input.value.trim() || estudianteIdx === -1) return;
 
         db.estudiantes[estudianteIdx].asignaturas.push({
@@ -1037,14 +1300,21 @@
         input.value = '';
         guardarPersistencia();
         renderEvaluacion();
+        mostrarAlerta("Asignatura agregada al final de la libreta", "success");
+        
+        // Auto-scroll
+        const container = document.getElementById('chat-messages-container');
+        container.scrollTop = container.scrollHeight;
     }
 
     function eliminarAsignatura(rIdx) {
-        if(confirm("¿Seguro que deseas eliminar esta asignatura?")) {
+        mostrarConfirmacion("¿Deseas remover definitivamente esta asignatura?", () => {
             db.estudiantes[estudianteIdx].asignaturas.splice(rIdx, 1);
             guardarPersistencia();
             renderEvaluacion();
-        }
+            renderEstudiantes();
+            mostrarAlerta("Asignatura removida", "info");
+        });
     }
 
     function editarConcepto(cIdx, sem, val) {
@@ -1073,80 +1343,392 @@
         if(estudianteIdx === -1) return;
         db.estudiantes[estudianteIdx].estado = document.getElementById('estado-estudiante-activo').value;
         guardarPersistencia();
+        renderEstudiantes();
     }
 
     function quitarEstudianteActivo() {
         if(estudianteIdx === -1) return;
-        if(confirm("¿Deseas remover definitivamente a este estudiante?")) {
+        mostrarConfirmacion("¿Estás seguro de que deseas eliminar permanentemente a este estudiante de SigeDoc?", () => {
             db.estudiantes.splice(estudianteIdx, 1);
             estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
             guardarPersistencia();
             renderEstudiantes();
             renderEvaluacion();
-        }
+            mostrarAlerta("Estudiante eliminado", "info");
+        });
     }
 
     function subirLogo(e) {
         const reader = new FileReader();
         reader.onload = function(ev) {
-            document.getElementById('logo-preview').src = ev.target.result;
             localStorage.setItem('notafacil_v3_logo', ev.target.result);
+            mostrarAlerta("Logotipo escolar actualizado para impresión", "success");
         };
         reader.readAsDataURL(e.target.files[0]);
     }
 
+    function compilarInformeHTML(estudiante) {
+        let colsHtmlS1 = '';
+        for(let i=1; i<=colsS1; i++) colsHtmlS1 += `<th style="width: 4%;">${i}</th>`;
+        let colsHtmlS2 = '';
+        for(let i=1; i<=colsS2; i++) colsHtmlS2 += `<th style="width: 4%;">${i}</th>`;
+
+        let filasAsignaturas = '';
+        estudiante.asignaturas.forEach(ramo => {
+            let notasS1Cells = '';
+            for(let i=0; i<colsS1; i++) {
+                let val = ramo.notasS1 ? (ramo.notasS1[i] || '') : '';
+                notasS1Cells += `<td>${val}</td>`;
+            }
+            let promS1 = calcularSemestrePromedio(ramo.notasS1 || []);
+
+            let notasS2Cells = '';
+            for(let i=0; i<colsS2; i++) {
+                let val = ramo.notasS2 ? (ramo.notasS2[i] || '') : '';
+                notasS2Cells += `<td>${val}</td>`;
+            }
+            let promS2 = calcularSemestrePromedio(ramo.notasS2 || []);
+
+            let promAnual = "-";
+            if(promS1 !== "-" && promS2 !== "-") {
+                let p1 = parseFloat(promS1.replace(',','.'));
+                let p2 = parseFloat(promS2.replace(',','.'));
+                promAnual = aproximarNota((p1 + p2) / 2).toFixed(1).replace('.',',');
+            }
+
+            filasAsignaturas += `
+                <tr>
+                    <td style="text-align: left; font-weight: bold; padding-left: 10px;">${ramo.nombre}</td>
+                    ${notasS1Cells}
+                    <td style="font-weight: bold; background: #f2f2f2;">${promS1}</td>
+                    ${notasS2Cells}
+                    <td style="font-weight: bold; background: #f2f2f2;">${promS2}</td>
+                    <td style="font-weight: bold; background: #f3f4f6; color: #111827;">${promAnual}</td>
+                </tr>
+            `;
+        });
+
+        let filasConceptos = '';
+        estudiante.conceptos.forEach(c => {
+            filasConceptos += `
+                <tr>
+                    <td style="text-align: left; padding-left: 10px;">${c.descriptor}</td>
+                    <td style="font-weight: bold;">${c.s1}</td>
+                    <td style="font-weight: bold;">${c.s2}</td>
+                </tr>
+            `;
+        });
+
+        const logoGuardado = localStorage.getItem('notafacil_v3_logo') || 'https://via.placeholder.com/110?text=Logo+Escuela';
+        const porcentajeAsistencia = estudiante.diasTrabajados > 0 ? ((estudiante.diasAsistidos / estudiante.diasTrabajados) * 100).toFixed(1) : '0.0';
+
+        return `
+            <div class="hoja-informe">
+                <div class="print-header-grid">
+                    <div>
+                        <img src="${logoGuardado}" style="width: 90px; height: 90px; object-fit: contain;">
+                    </div>
+                    <div style="text-align: center;">
+                        <h1 style="font-size: 18px; font-weight: 800; text-transform: uppercase;">${db.meta.establecimiento}</h1>
+                        <h2 style="font-size: 13px; color: #444; margin-top: 2px;">LAUTARO</h2>
+                        <div style="font-size: 11px; font-weight: bold; margin-top: 5px; text-transform: uppercase; border: 1px solid #000; display: inline-block; padding: 3px 12px; background: #f2f2f2;">
+                            INFORME OFICIAL DE NOTAS - AÑO ESCOLAR ${db.meta.anio}
+                        </div>
+                    </div>
+                    <div style="text-align: right; font-size: 9px; line-height: 1.3; font-weight: bold;">
+                        UTP OFICIAL<br>
+                        SigeDoc Web v3.0
+                    </div>
+                </div>
+
+                <table class="print-school-meta">
+                    <tr>
+                        <td class="lbl-meta">ESTUDIANTE:</td>
+                        <td style="font-weight: bold; font-size: 12px;">${estudiante.nombre}</td>
+                        <td class="lbl-meta">CURSO:</td>
+                        <td style="font-weight: bold;">${db.meta.curso}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-meta">PROFESOR JEFE:</td>
+                        <td>${db.meta.profesor}</td>
+                        <td class="lbl-meta">ESTADO:</td>
+                        <td style="font-weight: bold;">${estudiante.estado}</td>
+                    </tr>
+                </table>
+
+                <table class="bordered-print">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="width: 30%;">Asignaturas</th>
+                            <th colspan="${colsS1}">Primer Semestre</th>
+                            <th rowspan="2" style="width: 7%;">S1</th>
+                            <th colspan="${colsS2}">Segundo Semestre</th>
+                            <th rowspan="2" style="width: 7%;">S2</th>
+                            <th rowspan="2" style="width: 8%;">Prom. Anual</th>
+                        </tr>
+                        <tr>
+                            ${colsHtmlS1}
+                            ${colsHtmlS2}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filasAsignaturas}
+                    </tbody>
+                </table>
+
+                <table class="bordered-print" style="margin-top: 25px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding-left: 10px; width: 60%;">Conceptos / Indicadores de Desarrollo</th>
+                            <th style="width: 20%;">I Semestre</th>
+                            <th style="width: 20%;">II Semestre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filasConceptos}
+                    </tbody>
+                </table>
+
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start; margin-top: 20px; page-break-inside: avoid;">
+                    <table class="bordered-print">
+                        <thead>
+                            <tr><th colspan="2">Escala Conceptual</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="font-weight: bold; width: 30%;">S</td><td style="text-align: left; padding-left: 8px;">Siempre</td></tr>
+                            <tr><td style="font-weight: bold;">F</td><td style="text-align: left; padding-left: 8px;">Frecuentemente</td></tr>
+                            <tr><td style="font-weight: bold;">R/V</td><td style="text-align: left; padding-left: 8px;">Rara Vez</td></tr>
+                            <tr><td style="font-weight: bold;">N</td><td style="text-align: left; padding-left: 8px;">Nunca</td></tr>
+                            <tr><td style="font-weight: bold;">N/O</td><td style="text-align: left; padding-left: 8px;">No Observado</td></tr>
+                        </tbody>
+                    </table>
+
+                    <table class="bordered-print">
+                        <thead>
+                            <tr>
+                                <th>Días Trabajados</th>
+                                <th>Días Asistidos</th>
+                                <th>% Asistencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: bold;">${estudiante.diasTrabajados}</td>
+                                <td style="font-weight: bold;">${estudiante.diasAsistidos}</td>
+                                <td style="font-weight: bold; background: #f3f4f6;">${porcentajeAsistencia}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="print-signatures" style="page-break-inside: avoid; margin-top: 45px;">
+                    <div>
+                        <div class="print-sig-line">${db.meta.profesor}</div>
+                        <div>Profesor(a) Jefe</div>
+                    </div>
+                    <div>
+                        <div class="print-sig-line" style="width: 220px;">DIRECTOR(A) ESTABLECIMIENTO</div>
+                        <div>Firma y Timbre UTP</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function imprimirActivo() {
+        if (estudianteIdx === -1 || !db.estudiantes[estudianteIdx]) {
+            mostrarAlerta("Selecciona un alumno para imprimir", "warning");
+            return;
+        }
+        const container = document.getElementById('contenedor-impresion-mineduc');
+        container.innerHTML = compilarInformeHTML(db.estudiantes[estudianteIdx]);
+        window.print();
+    }
+
     function imprimirTodos() {
         if(db.estudiantes.length === 0) {
-            alert("No hay estudiantes registrados.");
+            mostrarAlerta("No hay estudiantes para imprimir", "warning");
             return;
         }
 
-        const originalIndex = estudianteIdx;
-        const printContainer = document.createElement('div');
-        printContainer.style.position = 'absolute';
-        printContainer.style.left = '-9999px';
-        printContainer.style.top = '-9999px';
-        document.body.appendChild(printContainer);
+        const container = document.getElementById('contenedor-impresion-mineduc');
+        container.innerHTML = '';
 
         db.estudiantes.forEach((estudiante, idx) => {
-            estudianteIdx = idx;
-            renderEvaluacion();
-
-            const clone = document.querySelector('.container').cloneNode(true);
-            clone.querySelectorAll('.no-print').forEach(el => el.remove());
+            const htmlFicha = compilarInformeHTML(estudiante);
+            const div = document.createElement('div');
+            div.innerHTML = htmlFicha;
             
-            clone.querySelector('#nombre-estudiante-activo').innerText = estudiante.nombre;
-            clone.querySelector('#asist-trabajados').value = estudiante.diasTrabajados;
-            clone.querySelector('#asist-asistidos').value = estudiante.diasAsistidos;
-            
-            const originalSelects = document.querySelectorAll('#tabla-conceptos-cuerpo select');
-            const cloneSelects = clone.querySelectorAll('#tabla-conceptos-cuerpo select');
-            cloneSelects.forEach((sel, sIdx) => {
-                sel.value = originalSelects[sIdx].value;
-                sel.disabled = true;
-            });
-
             if(idx < db.estudiantes.length - 1) {
-                clone.classList.add('page-break');
+                div.querySelector('.hoja-informe').classList.add('page-break');
             }
-            printContainer.appendChild(clone);
+            container.appendChild(div);
         });
 
-        estudianteIdx = originalIndex;
-        renderEvaluacion();
-
-        const originalBody = document.body.innerHTML;
-        document.body.innerHTML = printContainer.innerHTML;
         window.print();
-        document.body.innerHTML = originalBody;
-        
-        window.location.reload();
     }
 
-    window.registrarEstudiante = registrarEstudiante;
+    window.onbeforeprint = function() {
+        const container = document.getElementById('contenedor-impresion-mineduc');
+        if(container.innerHTML === '' && estudianteIdx !== -1 && db.estudiantes[estudianteIdx]) {
+            container.innerHTML = compilarInformeHTML(db.estudiantes[estudianteIdx]);
+        }
+    };
+
+    window.onafterprint = function() {
+        document.getElementById('contenedor-impresion-mineduc').innerHTML = '';
+    };
+
+    /* RESPALDO JSON LOCAL */
+    function descargarRespaldoLocal() {
+        try {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            const downloadAnchor = document.createElement('a');
+            const cursoName = (db.meta.curso || "curso").toLowerCase().replace(/\s+/g, "_");
+            const anioName = db.meta.anio || "2026";
+            
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `sigedoc_respaldo_${cursoName}_${anioName}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            mostrarAlerta("Copia de seguridad local generada con éxito", "success");
+        } catch (error) {
+            mostrarAlerta("Error al descargar respaldo", "error");
+        }
+    }
+
+    function importarRespaldoLocal(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const importedDb = JSON.parse(evt.target.result);
+                if (importedDb && importedDb.meta && Array.isArray(importedDb.estudiantes)) {
+                    mostrarConfirmacion("¿Deseas cargar este respaldo?\nSe reemplazarán todos tus cursos, estudiantes y configuraciones actuales de SigeDoc.", () => {
+                        db = importedDb;
+                        window.db = db;
+                        guardarPersistencia();
+                        iniciarApp();
+                        mostrarAlerta("Base de datos local importada", "success");
+                    });
+                } else {
+                    mostrarAlerta("Formato de archivo no válido", "error");
+                }
+            } catch (err) {
+                mostrarAlerta("Error al leer archivo", "error");
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+    }
+
+    /* SISTEMA DE NOTIFICACIONES TOASTS PROPIOS */
+    function mostrarAlerta(mensaje, tipo = "success") {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        let bgStyle = "bg-[#374151] text-white";
+        let icon = '<i class="fa-solid fa-info-circle"></i>';
+        
+        if (tipo === "success") {
+            bgStyle = "bg-slate-700 text-white";
+            icon = '<i class="fa-solid fa-circle-check"></i>';
+        } else if (tipo === "error") {
+            bgStyle = "bg-red-700 text-white";
+            icon = '<i class="fa-solid fa-circle-xmark"></i>';
+        } else if (tipo === "warning") {
+            bgStyle = "bg-amber-600 text-white";
+            icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        }
+
+        toast.className = `${bgStyle} px-4 py-3 rounded-lg shadow-lg flex items-center gap-2.5 text-xs font-bold pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
+        toast.innerHTML = `${icon} <span>${mensaje}</span>`;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('translate-y-2', 'opacity-0');
+        }, 50);
+
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-[-2px]');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    /* CONFIRMACIONES */
+    function mostrarConfirmacion(mensaje, onAceptado) {
+        const modal = document.getElementById('modal-confirmacion-custom');
+        const msgLbl = document.getElementById('lbl-confirm-mensaje');
+        const btnAceptar = document.getElementById('btn-confirm-aceptar');
+        const btnCancelar = document.getElementById('btn-confirm-cancelar');
+
+        msgLbl.innerText = mensaje;
+        modal.style.display = 'flex';
+
+        const cerrar = () => { modal.style.display = 'none'; };
+
+        btnCancelar.onclick = () => { cerrar(); };
+        btnAceptar.onclick = () => {
+            cerrar();
+            onAceptado();
+        };
+    }
+
+    /* CONTROL DE RED */
+    function abrirConfigRed() {
+        const modal = document.getElementById('modal-net-config');
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            document.getElementById('modal-content-panel').classList.remove('scale-95', 'opacity-0');
+            document.getElementById('modal-content-panel').classList.add('scale-100', 'opacity-100');
+        }, 50);
+    }
+
+    function cerrarConfigRed() {
+        document.getElementById('modal-content-panel').classList.remove('scale-100', 'opacity-100');
+        document.getElementById('modal-content-panel').classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            document.getElementById('modal-net-config').style.display = 'none';
+        }, 150);
+    }
+
+    /* PWA */
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installBtn = document.getElementById('btn-install-pwa');
+        if (installBtn) installBtn.style.display = 'inline-block';
+    });
+
+    function instalarSigeDocApp() {
+        if (!deferredPrompt) {
+            mostrarAlerta("Instrucciones Safari: Compartir > Agregar a pantalla de inicio", "warning");
+            return;
+        }
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                const installBtn = document.getElementById('btn-install-pwa');
+                if (installBtn) installBtn.style.display = 'none';
+            }
+            deferredPrompt = null;
+        });
+    }
+
+    window.registrarEstudiante = registrarEstudianteRapido;
+    window.registrarEstudianteRapido = registrarEstudianteRapido;
     window.cambiarEstadoEstudiante = cambiarEstadoEstudiante;
     window.quitarEstudianteActivo = quitarEstudianteActivo;
-    window.agregarAsignatura = agregarAsignatura;
+    window.agregarAsignatura = agregarAsignaturaDesdeInput;
+    window.agregarAsignaturaDesdeInput = agregarAsignaturaDesdeInput;
+    window.chequearEnterAsignatura = chequearEnterAsignatura;
     window.eliminarAsignatura = eliminarAsignatura;
     window.ajustarColumnas = ajustarColumnas;
     window.editarNota = editarNota;
@@ -1155,9 +1737,15 @@
     window.guardarCursoActualComoPlantilla = guardarCursoActualComoPlantilla;
     window.cargarPlantillaSeleccionada = cargarPlantillaSeleccionada;
     window.subirLogo = subirLogo;
-    window.cambiarFormato = cambiarFormato;
     window.guardarMeta = guardarMeta;
+    window.imprimirActivo = imprimirActivo;
     window.imprimirTodos = imprimirTodos;
+    window.descargarRespaldoLocal = descargarRespaldoLocal;
+    window.importarRespaldoLocal = importarRespaldoLocal;
+    window.filtrarEstudiantesListado = filtrarEstudiantesListado;
+    window.instalarSigeDocApp = instalarSigeDocApp;
+    window.abrirConfigRed = abrirConfigRed;
+    window.cerrarConfigRed = cerrarConfigRed;
 
     iniciarApp();
 </script>
