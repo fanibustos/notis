@@ -37,6 +37,18 @@
             padding: 0;
         }
 
+        /* Ocultar barra de scroll de pestañas por defecto para una vista táctil perfecta */
+        #tabs-cursos-contenedor::-webkit-scrollbar {
+            height: 4px;
+        }
+        #tabs-cursos-contenedor::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        #tabs-cursos-contenedor::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #d1d5db;
@@ -543,16 +555,23 @@
                 </div>
             </div>
 
+            <!-- Pestañas Horizontales por Curso -->
+            <div class="bg-slate-100 border-b border-slate-200 p-2 flex items-center gap-1.5 overflow-x-auto" id="tabs-cursos-contenedor">
+                <!-- Se inyecta dinámicamente -->
+            </div>
+
             <div class="search-container">
                 <div class="search-bar-wrapper">
                     <i class="fa-solid fa-search" style="color: var(--wa-text-gray);"></i>
-                    <input type="text" id="input-busqueda-estudiante" placeholder="Buscar o registrar estudiante..." oninput="filtrarEstudiantesListado()">
+                    <input type="text" id="input-busqueda-estudiante" placeholder="Buscar estudiante..." oninput="filtrarEstudiantesListado()">
                 </div>
                 <div class="flex gap-1.5">
-                    <select id="select-plantillas" class="border border-slate-300 rounded px-2 py-1 text-xs bg-white w-full outline-none" style="height: 32px;" onchange="cargarPlantillaSeleccionada()">
-                        <option value="">-- Carga Rápida Curso --</option>
+                    <button class="flex-grow bg-slate-700 hover:bg-slate-800 text-white font-bold py-1.5 px-3 rounded text-xs transition flex items-center justify-center gap-1.5 shadow-sm" onclick="abrirNuevoEstudianteModal()">
+                        <i class="fa-solid fa-user-plus"></i> + Agregar Estudiante
+                    </button>
+                    <select id="select-plantillas" class="border border-slate-300 rounded px-2 text-xs bg-white w-1/3 outline-none" style="height: 32px;" onchange="cargarPlantillaSeleccionada()">
+                        <option value="">-- Plantillas --</option>
                     </select>
-                    <button class="bg-[#374151] text-white hover:bg-gray-800 rounded px-3 text-xs font-bold shrink-0" style="height: 32px;" onclick="guardarCursoActualComoPlantilla()" title="Guardar como plantilla"><i class="fa-solid fa-save"></i></button>
                 </div>
             </div>
 
@@ -750,34 +769,55 @@
     <!-- CONTENEDORES DE INTERACCIONES FLOTANTES (TOASTS / CONFIRMACIÓN) -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <div id="modal-confirmacion-custom" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <!-- MODAL PARA CREAR NUEVO CURSO -->
+    <div id="modal-nuevo-curso-pantalla" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden">
-            <div class="p-5 flex flex-col gap-3">
-                <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2" id="lbl-confirm-titulo"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Confirmación</h4>
-                <p class="text-xs text-slate-600 leading-relaxed" id="lbl-confirm-mensaje">¿Estás seguro de que deseas realizar esta acción?</p>
-                <div class="flex gap-2 justify-end pt-3 border-t border-slate-100">
-                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3.5 py-1.5 rounded transition" id="btn-confirm-cancelar">Cancelar</button>
-                    <button class="bg-[#374151] hover:bg-gray-800 text-white font-bold text-xs px-3.5 py-1.5 rounded transition" id="btn-confirm-aceptar">Aceptar</button>
+            <div class="bg-[#374151] text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm uppercase tracking-wide flex items-center gap-2"><i class="fa-solid fa-folder-plus"></i> Crear Nuevo Curso</h3>
+                <i class="fa-solid fa-times cursor-pointer text-lg hover:text-slate-300" onclick="cerrarNuevoCursoModal()"></i>
+            </div>
+            <div class="p-5 flex flex-col gap-4">
+                <p class="text-xs text-slate-500 leading-relaxed">Asigna un identificador o nombre a la libreta del nuevo curso. Se creará una libreta limpia para que ingreses a tus alumnos.</p>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-600 block uppercase mb-1">Nombre del Curso (Ej: 8° AÑO B)</label>
+                    <input type="text" id="input-nuevo-curso-nombre" placeholder="Escribe el nombre del curso..." class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-slate-800 outline-none font-bold">
+                </div>
+                <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
+                    <button class="bg-slate-500 text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-600 transition" onclick="cerrarNuevoCursoModal()">Cancelar</button>
+                    <button class="bg-[#374151] text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-800 transition" onclick="guardarNuevoCursoCreado()">Crear Libreta</button>
                 </div>
             </div>
         </div>
     </div>
 
-<script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-    import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    <!-- MODAL PARA CREAR NUEVO ESTUDIANTE -->
+    <div id="modal-nuevo-estudiante-pantalla" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden">
+            <div class="bg-[#374151] text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm uppercase tracking-wide flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Registrar Estudiante</h3>
+                <i class="fa-solid fa-times cursor-pointer text-lg hover:text-slate-300" onclick="cerrarNuevoEstudianteModal()"></i>
+            </div>
+            <div class="p-5 flex flex-col gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-600 block uppercase mb-1">Nombre Completo del Estudiante</label>
+                    <input type="text" id="input-nuevo-estudiante-nombre" placeholder="Ej: JUAN PEREZ GOMEZ" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-slate-800 outline-none font-bold uppercase">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-600 block uppercase mb-1">Estado de Matrícula</label>
+                    <select id="select-nuevo-estudiante-estado" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-slate-800 outline-none font-bold">
+                        <option value="Regular">Regular</option>
+                        <option value="Irregular">Irregular</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
+                    <button class="bg-slate-500 text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-600 transition" onclick="cerrarNuevoEstudianteModal()">Cancelar</button>
+                    <button class="bg-[#374151] text-white font-bold text-xs px-3 py-1.5 rounded hover:bg-slate-800 transition" onclick="guardarNuevoEstudiante()">Guardar Estudiante</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    const firebaseConfig = JSON.parse(__firebase_config);
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const dbCloud = getFirestore(app);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'notafacil-quilacura-v3';
-
-    let userLogged = null;
-
-    const initAuth = async () => {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+    <!-- MODAL DE CONFIRMACIÓN CUSTOM -->
             await signInWithCustomToken(auth, __initial_auth_token);
         } else {
             await signInAnonymously(auth);
@@ -832,21 +872,61 @@
 
 <script>
     let db = JSON.parse(localStorage.getItem('notafacil_v3_db')) || {
-        estudiantes: [],
-        meta: {
+        cursos: {},
+        cursoActivoKey: "Default",
+        plantillas: []
+    };
+
+    // MIGRACIÓN DE DATOS (Si el usuario ya tenía notas ingresadas en la versión anterior)
+    if (!db.cursos) {
+        let estudiantesPrevios = db.estudiantes || [];
+        let metaPrevia = db.meta || {
             establecimiento: "ESCUELA PARTICULAR Nº 8 QUILACURA",
             comuna: "LAUTARO",
             profesor: "CARLOS GODOY AEDO",
             curso: "7° AÑO",
-            anio: "2026",
-            formato: "carta"
-        },
-        plantillas: []
-    };
+            anio: "2026"
+        };
+        db.cursos = {
+            "Default": {
+                nombre: metaPrevia.curso || "7° AÑO",
+                meta: metaPrevia,
+                estudiantes: estudiantesPrevios
+            }
+        };
+        db.cursoActivoKey = "Default";
+        delete db.estudiantes;
+        delete db.meta;
+    }
 
     window.db = db;
 
-    let estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
+    // Obtener datos del curso activo actual
+    function getCursoActivo() {
+        if (!db.cursos[db.cursoActivoKey]) {
+            // Validar que siempre exista al menos un curso base
+            let keys = Object.keys(db.cursos);
+            if (keys.length > 0) {
+                db.cursoActivoKey = keys[0];
+            } else {
+                db.cursos["Default"] = {
+                    nombre: "7° AÑO",
+                    meta: {
+                        establecimiento: "ESCUELA PARTICULAR Nº 8 QUILACURA",
+                        comuna: "LAUTARO",
+                        profesor: "CARLOS GODOY AEDO",
+                        curso: "7° AÑO",
+                        anio: "2026"
+                    },
+                    estudiantes: []
+                };
+                db.cursoActivoKey = "Default";
+            }
+        }
+        return db.cursos[db.cursoActivoKey];
+    }
+
+    let estudianteIdx = -1;
     let colsS1 = 4;
     let colsS2 = 4;
     let busquedaTerm = '';
@@ -867,7 +947,7 @@
         { nombre: 'LENGUA Y LITERATURA', notasS1: [], notasS2: [] },
         { nombre: 'IDIOMA EXTRANJERO: INGLÉS', notasS1: [], notasS2: [] },
         { nombre: 'MATEMÁTICA', notasS1: [], notasS2: [] },
-        { nombre: 'CIENCIAS NATURALES', notasS1: [], notasS2: [] },
+        { font_awesome: 'CIENCIAS NATURALES', nombre: 'CIENCIAS NATURALES', notasS1: [], notasS2: [] },
         { nombre: 'HISTORIA, GEOGRAFÍA Y CS.', notasS1: [], notasS2: [] },
         { nombre: 'TECNOLOGÍA', notasS1: [], notasS2: [] },
         { nombre: 'MÚSICA', notasS1: [], notasS2: [] },
@@ -896,7 +976,7 @@
                         { nombre: 'MATEMÁTICA', notasS1: [], notasS2: [] },
                         { nombre: 'CIENCIAS NATURALES', notasS1: [], notasS2: [] },
                         { nombre: 'HISTORIA, GEOGRAFÍA Y CS.', notasS1: [], notasS2: [] },
-                        { nombre: 'TECNOLOGÍA', notasS1: [], notasS2: [] },
+                        { font_awesome: 'TECNOLOGÍA', nombre: 'TECNOLOGÍA', notasS1: [], notasS2: [] },
                         { nombre: 'MÚSICA', notasS1: [], notasS2: [] },
                         { nombre: 'ARTES VISUALES', notasS1: [], notasS2: [] },
                         { nombre: 'EDUCACIÓN FÍSICA Y SALUD', notasS1: [], notasS2: [] },
@@ -913,33 +993,6 @@
                     ],
                     diasTrabajados: 100,
                     diasAsistidos: 98
-                },
-                {
-                    nombre: "FRANCO ESPINOSA",
-                    estado: "Regular",
-                    asignaturas: JSON.parse(JSON.stringify(asignaturasOficialesMineduc)),
-                    conceptos: listaConceptosDefecto.map(c => ({ descriptor: c, s1: 'F', s2: '-' })),
-                    diasTrabajados: 100,
-                    diasAsistidos: 95
-                },
-                {
-                    nombre: "VÍCTOR ALONSO CÓRDOVA MARINAO",
-                    estado: "Regular",
-                    asignaturas: [
-                        { nombre: 'LENGUA Y LITERATURA', notasS1: [6.9], notasS2: [] },
-                        { nombre: 'IDIOMA EXTRANJERO: INGLÉS', notasS1: [6.9], notasS2: [] },
-                        { nombre: 'MATEMÁTICA', notasS1: [6.3], notasS2: [] },
-                        { nombre: 'CIENCIAS NATURALES', notasS1: [6.5], notasS2: [] },
-                        { nombre: 'HISTORIA, GEOGRAFÍA Y CS.', notasS1: [5.6], notasS2: [] },
-                        { nombre: 'TECNOLOGÍA', notasS1: [7.0], notasS2: [] },
-                        { nombre: 'MÚSICA', notasS1: [7.0], notasS2: [] },
-                        { nombre: 'ARTES VISUALES', notasS1: [6.5], notasS2: [] },
-                        { nombre: 'EDUCACIÓN FÍSICA Y SALUD', notasS1: [6.9], notasS2: [] },
-                        { nombre: 'LENGUA INDÍGENA', notasS1: [6.2], notasS2: [] }
-                    ],
-                    conceptos: listaConceptosDefecto.map(c => ({ descriptor: c, s1: 'S', s2: '-' })),
-                    diasTrabajados: 100,
-                    diasAsistidos: 99
                 }
             ]
         }
@@ -951,15 +1004,22 @@
             guardarPersistencia();
         }
 
-        // Cargar Metadatos en inputs
-        document.getElementById('meta-establecimiento').value = db.meta.establecimiento || '';
-        document.getElementById('meta-comuna').value = db.meta.comuna || '';
-        document.getElementById('meta-profesor').value = db.meta.profesor || '';
-        document.getElementById('meta-curso').value = db.meta.curso || '';
-        document.getElementById('meta-anio').value = db.meta.anio || '';
+        let cursoActivo = getCursoActivo();
+
+        // Si es la primera vez o cambiamos de curso, ajustar el estudiante seleccionado por defecto
+        if (estudianteIdx === -1 || estudianteIdx >= cursoActivo.estudiantes.length) {
+            estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
+        }
+
+        // Cargar Metadatos del curso en inputs
+        document.getElementById('meta-establecimiento').value = cursoActivo.meta.establecimiento || '';
+        document.getElementById('meta-comuna').value = cursoActivo.meta.comuna || '';
+        document.getElementById('meta-profesor').value = cursoActivo.meta.profesor || '';
+        document.getElementById('meta-curso').value = cursoActivo.meta.curso || '';
+        document.getElementById('meta-anio').value = cursoActivo.meta.anio || '';
 
         // Iniciales del docente
-        const nombresProf = (db.meta.profesor || 'CARLOS GODOY').split(' ');
+        const nombresProf = (cursoActivo.meta.profesor || 'CARLOS GODOY').split(' ');
         let inicialesProf = "CG";
         if(nombresProf.length >= 2 && nombresProf[0] && nombresProf[1]) {
             inicialesProf = (nombresProf[0][0] + nombresProf[1][0]).toUpperCase();
@@ -968,6 +1028,7 @@
         }
         document.getElementById('lbl-avatar-iniciales').innerText = inicialesProf;
 
+        renderCursosTabs();
         renderEstudiantes();
         renderEvaluacion();
         renderSelectorPlantillas();
@@ -975,13 +1036,291 @@
 
     window.iniciarApp = iniciarApp;
 
-    function guardarMeta() {
-        db.meta.establecimiento = document.getElementById('meta-establecimiento').value;
-        db.meta.comuna = document.getElementById('meta-comuna').value;
-        db.meta.profesor = document.getElementById('meta-profesor').value;
-        db.meta.curso = document.getElementById('meta-curso').value;
-        db.meta.anio = document.getElementById('meta-anio').value;
+    function renderCursosTabs() {
+        const container = document.getElementById('tabs-cursos-contenedor');
+        container.innerHTML = '';
+
+        // Renderizar un botón de pestaña para cada curso existente
+        Object.keys(db.cursos).forEach(key => {
+            const curso = db.cursos[key];
+            const active = (key === db.cursoActivoKey);
+            
+            const tab = document.createElement('div');
+            tab.className = `flex items-center gap-2 shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition shadow-sm border ${
+                active 
+                ? 'bg-slate-700 text-white border-slate-700' 
+                : 'bg-white hover:bg-slate-200 text-slate-700 border-slate-200'
+            }`;
+            
+            tab.innerHTML = `
+                <span onclick="cambiarCursoSeleccionado('${key}')">${curso.nombre}</span>
+                ${Object.keys(db.cursos).length > 1 ? `
+                    <i class="fa-solid fa-times hover:text-red-400 text-[10px] ml-1" onclick="event.stopPropagation(); eliminarCursoPorKey('${key}')" title="Eliminar Curso"></i>
+                ` : ''}
+            `;
+            container.appendChild(tab);
+        });
+
+        // Botón de rápido acceso para crear un curso nuevo al final de las pestañas
+        const addTab = document.createElement('button');
+        addTab.className = "shrink-0 bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center border border-slate-300 shadow-sm";
+        addTab.innerHTML = '<i class="fa-solid fa-plus"></i>';
+        addTab.title = "Crear Nuevo Curso";
+        addTab.onclick = abrirNuevoCursoModal;
+        container.appendChild(addTab);
+    }
+
+    function cambiarCursoSeleccionado(key) {
+        db.cursoActivoKey = key;
+        let curso = getCursoActivo();
+        estudianteIdx = curso.estudiantes.length > 0 ? 0 : -1;
         guardarPersistencia();
+        iniciarApp();
+        mostrarAlerta(`Cambiado al curso: ${curso.nombre}`, "success");
+    }
+
+    function abrirNuevoCursoModal() {
+        document.getElementById('modal-nuevo-curso-pantalla').style.display = 'flex';
+        document.getElementById('input-nuevo-curso-nombre').value = '';
+    }
+
+    function cerrarNuevoCursoModal() {
+        document.getElementById('modal-nuevo-curso-pantalla').style.display = 'none';
+    }
+
+    function abrirNuevoEstudianteModal() {
+        document.getElementById('modal-nuevo-estudiante-pantalla').style.display = 'flex';
+        document.getElementById('input-nuevo-estudiante-nombre').value = '';
+        document.getElementById('input-nuevo-estudiante-nombre').focus();
+    }
+
+    function cerrarNuevoEstudianteModal() {
+        document.getElementById('modal-nuevo-estudiante-pantalla').style.display = 'none';
+    }
+
+    function guardarNuevoEstudiante() {
+        const nombreVal = document.getElementById('input-nuevo-estudiante-nombre').value.trim();
+        const estadoVal = document.getElementById('select-nuevo-estudiante-estado').value;
+
+        if (!nombreVal) {
+            mostrarAlerta("Ingresa el nombre del estudiante", "warning");
+            return;
+        }
+
+        let cursoActivo = getCursoActivo();
+        cursoActivo.estudiantes.push({
+            nombre: nombreVal.toUpperCase(),
+            estado: estadoVal,
+            asignaturas: JSON.parse(JSON.stringify(asignaturasOficialesMineduc)),
+            conceptos: listaConceptosDefecto.map(c => ({ descriptor: c, s1: '-', s2: '-' })),
+            diasTrabajados: 100,
+            diasAsistidos: 95
+        });
+
+        estudianteIdx = cursoActivo.estudiantes.length - 1;
+        guardarPersistencia();
+        cerrarNuevoEstudianteModal();
+        iniciarApp();
+        mostrarAlerta("Estudiante registrado con éxito", "success");
+    }
+
+    function guardarNuevoCursoCreado() {
+        const nombreVal = document.getElementById('input-nuevo-curso-nombre').value.trim();
+        if (!nombreVal) {
+            mostrarAlerta("Ingresa un nombre para el curso", "warning");
+            return;
+        }
+
+        const cursoActivo = getCursoActivo();
+        const key = "curso_" + Date.now();
+
+        // Crear curso nuevo heredando los metadatos institucionales del curso anterior para ahorrar tiempo
+        db.cursos[key] = {
+            nombre: nombreVal.toUpperCase(),
+            meta: {
+                establecimiento: cursoActivo.meta.establecimiento || "ESCUELA PARTICULAR Nº 8 QUILACURA",
+                comuna: cursoActivo.meta.comuna || "LAUTARO",
+                profesor: cursoActivo.meta.profesor || "CARLOS GODOY AEDO",
+                curso: nombreVal.toUpperCase(),
+                anio: cursoActivo.meta.anio || "2026"
+            },
+            estudiantes: []
+        };
+
+        db.cursoActivoKey = key;
+        estudianteIdx = -1;
+
+        guardarPersistencia();
+        cerrarNuevoCursoModal();
+        iniciarApp();
+        mostrarAlerta(`Curso "${nombreVal.toUpperCase()}" creado con éxito`, "success");
+    }
+
+    function eliminarCursoPorKey(key) {
+        const curso = db.cursos[key];
+        if (!curso) return;
+
+        mostrarConfirmacion(`¿Deseas eliminar completamente el curso "${curso.nombre}" y todos sus alumnos inscritos?`, () => {
+            delete db.cursos[key];
+            
+            // Si eliminamos el curso activo, re-apuntar a otro curso que quede libre
+            if (db.cursoActivoKey === key) {
+                db.cursoActivoKey = Object.keys(db.cursos)[0];
+                estudianteIdx = -1;
+            }
+            guardarPersistencia();
+            iniciarApp();
+            mostrarAlerta("Curso removido correctamente", "info");
+        });
+    }
+
+    function eliminarCursoActual() {
+        let keys = Object.keys(db.cursos);
+        if (keys.length <= 1) {
+            mostrarAlerta("No puedes eliminar el único curso que te queda", "warning");
+            return;
+        }
+
+        const cursoActivo = getCursoActivo();
+        eliminarCursoPorKey(db.cursoActivoKey);
+    }
+            ]
+        }
+    ];
+
+    function iniciarApp() {
+        if(!db.plantillas || db.plantillas.length === 0) {
+            db.plantillas = plantillasPorDefecto;
+            guardarPersistencia();
+        }
+
+        let cursoActivo = getCursoActivo();
+
+        // Si es la primera vez o cambiamos de curso, ajustar el estudiante seleccionado por defecto
+        if (estudianteIdx === -1 || estudianteIdx >= cursoActivo.estudiantes.length) {
+            estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
+        }
+
+        // Cargar Metadatos del curso en inputs
+        document.getElementById('meta-establecimiento').value = cursoActivo.meta.establecimiento || '';
+        document.getElementById('meta-comuna').value = cursoActivo.meta.comuna || '';
+        document.getElementById('meta-profesor').value = cursoActivo.meta.profesor || '';
+        document.getElementById('meta-curso').value = cursoActivo.meta.curso || '';
+        document.getElementById('meta-anio').value = cursoActivo.meta.anio || '';
+
+        // Iniciales del docente
+        const nombresProf = (cursoActivo.meta.profesor || 'CARLOS GODOY').split(' ');
+        let inicialesProf = "CG";
+        if(nombresProf.length >= 2 && nombresProf[0] && nombresProf[1]) {
+            inicialesProf = (nombresProf[0][0] + nombresProf[1][0]).toUpperCase();
+        } else if(nombresProf[0]) {
+            inicialesProf = nombresProf[0].slice(0,2).toUpperCase();
+        }
+        document.getElementById('lbl-avatar-iniciales').innerText = inicialesProf;
+
+        renderCursosDropdown();
+        renderEstudiantes();
+        renderEvaluacion();
+        renderSelectorPlantillas();
+    }
+
+    window.iniciarApp = iniciarApp;
+
+    function renderCursosDropdown() {
+        const select = document.getElementById('select-curso-activo');
+        select.innerHTML = '';
+        Object.keys(db.cursos).forEach(key => {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.innerText = db.cursos[key].nombre;
+            if (key === db.cursoActivoKey) {
+                opt.selected = true;
+            }
+            select.appendChild(opt);
+        });
+    }
+
+    function cambiarCursoSeleccionado(key) {
+        db.cursoActivoKey = key;
+        let curso = getCursoActivo();
+        estudianteIdx = curso.estudiantes.length > 0 ? 0 : -1;
+        guardarPersistencia();
+        iniciarApp();
+        mostrarAlerta(`Cambiado al curso: ${curso.nombre}`, "success");
+    }
+
+    function abrirNuevoCursoModal() {
+        document.getElementById('modal-nuevo-curso-pantalla').style.display = 'flex';
+        document.getElementById('input-nuevo-curso-nombre').value = '';
+    }
+
+    function cerrarNuevoCursoModal() {
+        document.getElementById('modal-nuevo-curso-pantalla').style.display = 'none';
+    }
+
+    function guardarNuevoCursoCreado() {
+        const nombreVal = document.getElementById('input-nuevo-curso-nombre').value.trim();
+        if (!nombreVal) {
+            mostrarAlerta("Ingresa un nombre para el curso", "warning");
+            return;
+        }
+
+        const cursoActivo = getCursoActivo();
+        const key = "curso_" + Date.now();
+
+        // Crear curso nuevo heredando los metadatos institucionales del curso anterior para ahorrar tiempo
+        db.cursos[key] = {
+            nombre: nombreVal.toUpperCase(),
+            meta: {
+                establecimiento: cursoActivo.meta.establecimiento || "ESCUELA PARTICULAR Nº 8 QUILACURA",
+                comuna: cursoActivo.meta.comuna || "LAUTARO",
+                profesor: cursoActivo.meta.profesor || "CARLOS GODOY AEDO",
+                curso: nombreVal.toUpperCase(),
+                anio: cursoActivo.meta.anio || "2026"
+            },
+            estudiantes: []
+        };
+
+        db.cursoActivoKey = key;
+        estudianteIdx = -1;
+
+        guardarPersistencia();
+        cerrarNuevoCursoModal();
+        iniciarApp();
+        mostrarAlerta(`Curso "${nombreVal.toUpperCase()}" creado con éxito`, "success");
+    }
+
+    function eliminarCursoActual() {
+        let keys = Object.keys(db.cursos);
+        if (keys.length <= 1) {
+            mostrarAlerta("No puedes eliminar el único curso que te queda", "warning");
+            return;
+        }
+
+        const cursoActivo = getCursoActivo();
+        mostrarConfirmacion(`¿Deseas eliminar completamente el curso "${cursoActivo.nombre}" y todos sus alumnos inscritos?`, () => {
+            delete db.cursos[db.cursoActivoKey];
+            db.cursoActivoKey = Object.keys(db.cursos)[0];
+            estudianteIdx = -1;
+            guardarPersistencia();
+            iniciarApp();
+            mostrarAlerta("Curso removido correctamente", "info");
+        });
+    }
+
+    function guardarMeta() {
+        let cursoActivo = getCursoActivo();
+        cursoActivo.meta.establecimiento = document.getElementById('meta-establecimiento').value;
+        cursoActivo.meta.comuna = document.getElementById('meta-comuna').value;
+        cursoActivo.meta.profesor = document.getElementById('meta-profesor').value;
+        cursoActivo.meta.curso = document.getElementById('meta-curso').value;
+        cursoActivo.meta.anio = document.getElementById('meta-anio').value;
+
+        // Actualizar el nombre en el selector lateral
+        cursoActivo.nombre = cursoActivo.meta.curso.toUpperCase() || "CURSO SIN NOMBRE";
+
+        guardarPersistencia();
+        renderCursosDropdown();
     }
 
     function guardarPersistencia() {
@@ -989,7 +1328,6 @@
     }
     window.guardarPersistencia = guardarPersistencia;
 
-    /* SISTEMA DE PLANTILLAS DINÁMICO */
     function renderSelectorPlantillas() {
         const select = document.getElementById('select-plantillas');
         select.innerHTML = '<option value="">-- Carga Rápida Curso --</option>';
@@ -1007,49 +1345,45 @@
         const idx = select.value;
         if(idx === "") return;
 
-        mostrarConfirmacion(`¿Deseas cargar el curso "${db.plantillas[idx].nombrePlantilla}"?\nEsto reemplazará todos los datos actuales.`, () => {
+        mostrarConfirmacion(`¿Deseas cargar la plantilla "${db.plantillas[idx].nombrePlantilla}"?\nEsto reemplazará los datos del curso actual.`, () => {
             const plantilla = db.plantillas[idx];
+            let cursoActivo = getCursoActivo();
             
-            db.meta.establecimiento = plantilla.meta.establecimiento;
-            db.meta.comuna = plantilla.meta.comuna;
-            db.meta.profesor = plantilla.meta.profesor;
-            db.meta.curso = plantilla.meta.curso;
-            db.meta.anio = plantilla.meta.anio;
+            cursoActivo.meta.establecimiento = plantilla.meta.establecimiento;
+            cursoActivo.meta.comuna = plantilla.meta.comuna;
+            cursoActivo.meta.profesor = plantilla.meta.profesor;
+            cursoActivo.meta.curso = plantilla.meta.curso;
+            cursoActivo.meta.anio = plantilla.meta.anio;
+            cursoActivo.nombre = plantilla.meta.curso.toUpperCase();
             
-            db.estudiantes = JSON.parse(JSON.stringify(plantilla.estudiantes));
-            estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
+            cursoActivo.estudiantes = JSON.parse(JSON.stringify(plantilla.estudiantes));
+            estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
 
             guardarPersistencia();
             iniciarApp();
-            mostrarAlerta("Curso cargado correctamente", "success");
+            mostrarAlerta("Plantilla importada en curso activo", "success");
         });
         select.value = "";
     }
 
     function guardarCursoActualComoPlantilla() {
-        const cursoNombre = document.getElementById('meta-curso').value.trim() || "CURSO NUEVO";
-        const profNombre = document.getElementById('meta-profesor').value.trim() || "SIN DOCENTE";
+        let cursoActivo = getCursoActivo();
+        const cursoNombre = cursoActivo.meta.curso.trim() || "CURSO NUEVO";
+        const profNombre = cursoActivo.meta.profesor.trim() || "SIN DOCENTE";
         const templateName = `${cursoNombre.toUpperCase()} - ${profNombre.toUpperCase()} (${new Date().toLocaleDateString()})`;
 
         const nuevaPlantilla = {
             nombrePlantilla: templateName,
-            meta: {
-                establecimiento: document.getElementById('meta-establecimiento').value,
-                comuna: document.getElementById('meta-comuna').value,
-                profesor: document.getElementById('meta-profesor').value,
-                curso: document.getElementById('meta-curso').value,
-                anio: document.getElementById('meta-anio').value
-            },
-            estudiantes: JSON.parse(JSON.stringify(db.estudiantes))
+            meta: JSON.parse(JSON.stringify(cursoActivo.meta)),
+            estudiantes: JSON.parse(JSON.stringify(cursoActivo.estudiantes))
         };
 
         db.plantillas.push(nuevaPlantilla);
         guardarPersistencia();
         renderSelectorPlantillas();
-        mostrarAlerta(`Curso "${templateName}" guardado con éxito`, "success");
+        mostrarAlerta(`Curso "${templateName}" guardado como plantilla`, "success");
     }
 
-    /* REGISTRO Y GESTIÓN DE ALUMNOS */
     function registrarEstudianteRapido() {
         const input = document.getElementById('input-busqueda-estudiante');
         if(!input.value.trim()) {
@@ -1057,7 +1391,8 @@
             return;
         }
 
-        db.estudiantes.push({
+        let cursoActivo = getCursoActivo();
+        cursoActivo.estudiantes.push({
             nombre: input.value.trim().toUpperCase(),
             estado: 'Regular',
             asignaturas: JSON.parse(JSON.stringify(asignaturasOficialesMineduc)),
@@ -1066,7 +1401,7 @@
             diasAsistidos: 95
         });
 
-        estudianteIdx = db.estudiantes.length - 1;
+        estudianteIdx = cursoActivo.estudiantes.length - 1;
         input.value = '';
         guardarPersistencia();
         renderEstudiantes();
@@ -1083,7 +1418,9 @@
         const listDiv = document.getElementById('lista-estudiantes');
         listDiv.innerHTML = '';
 
-        const estudiantesFiltrados = db.estudiantes.map((est, idx) => ({ est, originalIdx: idx }))
+        let cursoActivo = getCursoActivo();
+
+        const estudiantesFiltrados = cursoActivo.estudiantes.map((est, idx) => ({ est, originalIdx: idx }))
             .filter(item => item.est.nombre.toLowerCase().includes(busquedaTerm));
 
         if(estudiantesFiltrados.length === 0 && busquedaTerm.trim().length > 0) {
@@ -1095,7 +1432,7 @@
             `;
             return;
         } else if (estudiantesFiltrados.length === 0) {
-            listDiv.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Sin resultados</div>`;
+            listDiv.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Sin estudiantes registrados en este curso</div>`;
             return;
         }
 
@@ -1108,7 +1445,7 @@
             if(nombres.length >= 2 && nombres[0] && nombres[1]) {
                 iniciales = (nombres[0][0] + nombres[1][0]).toUpperCase();
             } else if(nombres[0]) {
-                iniciales = nombres[0].slice(0, 2).toUpperCase();
+                iniciales = nombres[0].slice(0,2).toUpperCase();
             }
 
             // Calcular promedio general
@@ -1160,7 +1497,9 @@
         const welcome = document.getElementById('welcome-screen-wa');
         const activeChat = document.getElementById('active-chat-wa');
 
-        if(estudianteIdx === -1 || !db.estudiantes[estudianteIdx]) {
+        let cursoActivo = getCursoActivo();
+
+        if(estudianteIdx === -1 || !cursoActivo.estudiantes[estudianteIdx]) {
             welcome.style.display = 'flex';
             activeChat.style.display = 'none';
             return;
@@ -1169,7 +1508,7 @@
         welcome.style.display = 'none';
         activeChat.style.display = 'flex';
 
-        const est = db.estudiantes[estudianteIdx];
+        const est = cursoActivo.estudiantes[estudianteIdx];
         document.getElementById('lbl-nombre-estudiante-activo').innerText = est.nombre;
         document.getElementById('estado-estudiante-activo').value = est.estado;
         document.getElementById('asist-trabajados').value = est.diasTrabajados || 100;
@@ -1269,7 +1608,8 @@
             notaNum = '';
         }
 
-        const est = db.estudiantes[estudianteIdx];
+        let cursoActivo = getCursoActivo();
+        const est = cursoActivo.estudiantes[estudianteIdx];
         if(!est.asignaturas[rIdx].notasS1) est.asignaturas[rIdx].notasS1 = [];
         if(!est.asignaturas[rIdx].notasS2) est.asignaturas[rIdx].notasS2 = [];
 
@@ -1308,7 +1648,6 @@
         renderEvaluacion();
     }
 
-    /* Entrada de Chat rápida para añadir ramos */
     function chequearEnterAsignatura(e) {
         if (e.key === 'Enter') {
             agregarAsignaturaDesdeInput();
@@ -1317,9 +1656,10 @@
 
     function agregarAsignaturaDesdeInput() {
         const input = document.getElementById('input-nueva-asignatura-chat');
+        let cursoActivo = getCursoActivo();
         if(!input.value.trim() || estudianteIdx === -1) return;
 
-        db.estudiantes[estudianteIdx].asignaturas.push({
+        cursoActivo.estudiantes[estudianteIdx].asignaturas.push({
             nombre: input.value.trim().toUpperCase(),
             notasS1: [],
             notasS2: []
@@ -1330,14 +1670,14 @@
         renderEvaluacion();
         mostrarAlerta("Asignatura agregada al final de la libreta", "success");
         
-        // Auto-scroll
         const container = document.getElementById('chat-messages-container');
         container.scrollTop = container.scrollHeight;
     }
 
     function eliminarAsignatura(rIdx) {
+        let cursoActivo = getCursoActivo();
         mostrarConfirmacion("¿Deseas remover definitivamente esta asignatura?", () => {
-            db.estudiantes[estudianteIdx].asignaturas.splice(rIdx, 1);
+            cursoActivo.estudiantes[estudianteIdx].asignaturas.splice(rIdx, 1);
             guardarPersistencia();
             renderEvaluacion();
             renderEstudiantes();
@@ -1346,13 +1686,15 @@
     }
 
     function editarConcepto(cIdx, sem, val) {
-        db.estudiantes[estudianteIdx].conceptos[cIdx][sem] = val;
+        let cursoActivo = getCursoActivo();
+        cursoActivo.estudiantes[estudianteIdx].conceptos[cIdx][sem] = val;
         guardarPersistencia();
     }
 
     function calcularAsistencia() {
-        if(estudianteIdx === -1) return;
-        const est = db.estudiantes[estudianteIdx];
+        let cursoActivo = getCursoActivo();
+        if(estudianteIdx === -1 || !cursoActivo.estudiantes[estudianteIdx]) return;
+        const est = cursoActivo.estudiantes[estudianteIdx];
         const t = parseFloat(document.getElementById('asist-trabajados').value) || 0;
         const a = parseFloat(document.getElementById('asist-asistidos').value) || 0;
 
@@ -1368,17 +1710,19 @@
     }
 
     function cambiarEstadoEstudiante() {
+        let cursoActivo = getCursoActivo();
         if(estudianteIdx === -1) return;
-        db.estudiantes[estudianteIdx].estado = document.getElementById('estado-estudiante-activo').value;
+        cursoActivo.estudiantes[estudianteIdx].estado = document.getElementById('estado-estudiante-activo').value;
         guardarPersistencia();
         renderEstudiantes();
     }
 
     function quitarEstudianteActivo() {
+        let cursoActivo = getCursoActivo();
         if(estudianteIdx === -1) return;
         mostrarConfirmacion("¿Estás seguro de que deseas eliminar permanentemente a este estudiante de SigeDoc?", () => {
-            db.estudiantes.splice(estudianteIdx, 1);
-            estudianteIdx = db.estudiantes.length > 0 ? 0 : -1;
+            cursoActivo.estudiantes.splice(estudianteIdx, 1);
+            estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
             guardarPersistencia();
             renderEstudiantes();
             renderEvaluacion();
@@ -1396,6 +1740,7 @@
     }
 
     function compilarInformeHTML(estudiante) {
+        let cursoActivo = getCursoActivo();
         let colsHtmlS1 = '';
         for(let i=1; i<=colsS1; i++) colsHtmlS1 += `<th style="width: 4%;">${i}</th>`;
         let colsHtmlS2 = '';
@@ -1457,10 +1802,10 @@
                         <img src="${logoGuardado}" style="width: 90px; height: 90px; object-fit: contain;">
                     </div>
                     <div style="text-align: center;">
-                        <h1 style="font-size: 18px; font-weight: 800; text-transform: uppercase;">${db.meta.establecimiento}</h1>
+                        <h1 style="font-size: 18px; font-weight: 800; text-transform: uppercase;">${cursoActivo.meta.establecimiento}</h1>
                         <h2 style="font-size: 13px; color: #444; margin-top: 2px;">LAUTARO</h2>
                         <div style="font-size: 11px; font-weight: bold; margin-top: 5px; text-transform: uppercase; border: 1px solid #000; display: inline-block; padding: 3px 12px; background: #f2f2f2;">
-                            INFORME OFICIAL DE NOTAS - AÑO ESCOLAR ${db.meta.anio}
+                            INFORME OFICIAL DE NOTAS - AÑO ESCOLAR ${cursoActivo.meta.anio}
                         </div>
                     </div>
                     <div style="text-align: right; font-size: 9px; line-height: 1.3; font-weight: bold;">
@@ -1474,11 +1819,11 @@
                         <td class="lbl-meta">ESTUDIANTE:</td>
                         <td style="font-weight: bold; font-size: 12px;">${estudiante.nombre}</td>
                         <td class="lbl-meta">CURSO:</td>
-                        <td style="font-weight: bold;">${db.meta.curso}</td>
+                        <td style="font-weight: bold;">${cursoActivo.meta.curso}</td>
                     </tr>
                     <tr>
                         <td class="lbl-meta">PROFESOR JEFE:</td>
-                        <td>${db.meta.profesor}</td>
+                        <td>${cursoActivo.meta.profesor}</td>
                         <td class="lbl-meta">ESTADO:</td>
                         <td style="font-weight: bold;">${estudiante.estado}</td>
                     </tr>
@@ -1551,7 +1896,7 @@
 
                 <div class="print-signatures" style="page-break-inside: avoid; margin-top: 45px;">
                     <div>
-                        <div class="print-sig-line">${db.meta.profesor}</div>
+                        <div class="print-sig-line">${cursoActivo.meta.profesor}</div>
                         <div>Profesor(a) Jefe</div>
                     </div>
                     <div>
@@ -1564,17 +1909,19 @@
     }
 
     function imprimirActivo() {
-        if (estudianteIdx === -1 || !db.estudiantes[estudianteIdx]) {
+        let cursoActivo = getCursoActivo();
+        if (estudianteIdx === -1 || !cursoActivo.estudiantes[estudianteIdx]) {
             mostrarAlerta("Selecciona un alumno para imprimir", "warning");
             return;
         }
         const container = document.getElementById('contenedor-impresion-mineduc');
-        container.innerHTML = compilarInformeHTML(db.estudiantes[estudianteIdx]);
+        container.innerHTML = compilarInformeHTML(cursoActivo.estudiantes[estudianteIdx]);
         window.print();
     }
 
     function imprimirTodos() {
-        if(db.estudiantes.length === 0) {
+        let cursoActivo = getCursoActivo();
+        if(cursoActivo.estudiantes.length === 0) {
             mostrarAlerta("No hay estudiantes para imprimir", "warning");
             return;
         }
@@ -1582,12 +1929,12 @@
         const container = document.getElementById('contenedor-impresion-mineduc');
         container.innerHTML = '';
 
-        db.estudiantes.forEach((estudiante, idx) => {
+        cursoActivo.estudiantes.forEach((estudiante, idx) => {
             const htmlFicha = compilarInformeHTML(estudiante);
             const div = document.createElement('div');
             div.innerHTML = htmlFicha;
             
-            if(idx < db.estudiantes.length - 1) {
+            if(idx < cursoActivo.estudiantes.length - 1) {
                 div.querySelector('.hoja-informe').classList.add('page-break');
             }
             container.appendChild(div);
@@ -1597,9 +1944,10 @@
     }
 
     window.onbeforeprint = function() {
+        let cursoActivo = getCursoActivo();
         const container = document.getElementById('contenedor-impresion-mineduc');
-        if(container.innerHTML === '' && estudianteIdx !== -1 && db.estudiantes[estudianteIdx]) {
-            container.innerHTML = compilarInformeHTML(db.estudiantes[estudianteIdx]);
+        if(container.innerHTML === '' && estudianteIdx !== -1 && cursoActivo.estudiantes[estudianteIdx]) {
+            container.innerHTML = compilarInformeHTML(cursoActivo.estudiantes[estudianteIdx]);
         }
     };
 
@@ -1607,20 +1955,19 @@
         document.getElementById('contenedor-impresion-mineduc').innerHTML = '';
     };
 
-    /* RESPALDO JSON LOCAL */
     function descargarRespaldoLocal() {
         try {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
             const downloadAnchor = document.createElement('a');
-            const cursoName = (db.meta.curso || "curso").toLowerCase().replace(/\s+/g, "_");
-            const anioName = db.meta.anio || "2026";
+            const cursoName = "sigedoc_respaldo_completo";
+            const anioName = "2026";
             
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `sigedoc_respaldo_${cursoName}_${anioName}.json`);
+            downloadAnchor.setAttribute("download", `${cursoName}_${anioName}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-            mostrarAlerta("Copia de seguridad local generada con éxito", "success");
+            mostrarAlerta("Copia de seguridad de todos los cursos descargada", "success");
         } catch (error) {
             mostrarAlerta("Error al descargar respaldo", "error");
         }
@@ -1634,13 +1981,31 @@
         reader.onload = function(evt) {
             try {
                 const importedDb = JSON.parse(evt.target.result);
-                if (importedDb && importedDb.meta && Array.isArray(importedDb.estudiantes)) {
-                    mostrarConfirmacion("¿Deseas cargar este respaldo?\nSe reemplazarán todos tus cursos, estudiantes y configuraciones actuales de SigeDoc.", () => {
+                // Validar estructura PWA multigrupo o migrar si es el formato antiguo
+                if (importedDb && (importedDb.cursos || Array.isArray(importedDb.estudiantes))) {
+                    mostrarConfirmacion("¿Deseas cargar este respaldo?\nSe reemplazarán todos tus cursos actuales de SigeDoc.", () => {
                         db = importedDb;
+                        
+                        // Migrar si el respaldo importado es de la versión antigua
+                        if (!db.cursos) {
+                            let estudiantesPrevios = db.estudiantes || [];
+                            let metaPrevia = db.meta || { establecimiento: "", comuna: "", profesor: "", curso: "7° AÑO", anio: "2026" };
+                            db.cursos = {
+                                "Default": {
+                                    nombre: metaPrevia.curso || "7° AÑO",
+                                    meta: metaPrevia,
+                                    estudiantes: estudiantesPrevios
+                                }
+                            };
+                            db.cursoActivoKey = "Default";
+                            delete db.estudiantes;
+                            delete db.meta;
+                        }
+
                         window.db = db;
                         guardarPersistencia();
                         iniciarApp();
-                        mostrarAlerta("Base de datos local importada", "success");
+                        mostrarAlerta("Cursos locales importados", "success");
                     });
                 } else {
                     mostrarAlerta("Formato de archivo no válido", "error");
@@ -1653,7 +2018,6 @@
         e.target.value = "";
     }
 
-    /* SISTEMA DE NOTIFICACIONES TOASTS PROPIOS */
     function mostrarAlerta(mensaje, tipo = "success") {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
@@ -1689,7 +2053,6 @@
         }, 3000);
     }
 
-    /* CONFIRMACIONES */
     function mostrarConfirmacion(mensaje, onAceptado) {
         const modal = document.getElementById('modal-confirmacion-custom');
         const msgLbl = document.getElementById('lbl-confirm-mensaje');
@@ -1708,7 +2071,6 @@
         };
     }
 
-    /* CONTROL DE RED */
     function abrirConfigRed() {
         const modal = document.getElementById('modal-net-config');
         modal.style.display = 'flex';
@@ -1726,7 +2088,6 @@
         }, 150);
     }
 
-    /* PWA */
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -1750,6 +2111,7 @@
         });
     }
 
+    // Registrar funciones al ámbito global
     window.registrarEstudiante = registrarEstudianteRapido;
     window.registrarEstudianteRapido = registrarEstudianteRapido;
     window.cambiarEstadoEstudiante = cambiarEstadoEstudiante;
@@ -1774,6 +2136,19 @@
     window.instalarSigeDocApp = instalarSigeDocApp;
     window.abrirConfigRed = abrirConfigRed;
     window.cerrarConfigRed = cerrarConfigRed;
+
+    // Métodos globales del selector de cursos y estudiantes nuevos
+    window.cambiarCursoSeleccionado = cambiarCursoSeleccionado;
+    window.abrirNuevoCursoModal = abrirNuevoCursoModal;
+    window.cerrarNuevoCursoModal = cerrarNuevoCursoModal;
+    window.guardarNuevoCursoCreado = guardarNuevoCursoCreado;
+    window.eliminarCursoActual = eliminarCursoActual;
+    window.eliminarCursoPorKey = eliminarCursoPorKey;
+    
+    // Métodos de los modales de estudiantes
+    window.abrirNuevoEstudianteModal = abrirNuevoEstudianteModal;
+    window.cerrarNuevoEstudianteModal = cerrarNuevoEstudianteModal;
+    window.guardarNuevoEstudiante = guardarNuevoEstudiante;
 
     iniciarApp();
 </script>
