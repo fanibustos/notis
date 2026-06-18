@@ -219,6 +219,33 @@
             align-items: center;
         }
 
+        /* Personalización de la huincha de desplazamiento (Scrollbar) para que sea visible y elegante */
+        .chat-messages-area::-webkit-scrollbar,
+        .chat-list::-webkit-scrollbar {
+            width: 10px; /* Ancho cómodo para mouse y touch */
+        }
+
+        .chat-messages-area::-webkit-scrollbar-track,
+        .chat-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .chat-messages-area::-webkit-scrollbar-thumb,
+        .chat-list::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* Gris pizarra medio */
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            border-radius: 8px;
+        }
+
+        .chat-messages-area::-webkit-scrollbar-thumb:hover,
+        .chat-list::-webkit-scrollbar-thumb:hover {
+            background: #4b5563; /* Gris carbón al pasar el cursor */
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
         .chat-window {
             display: flex;
             flex-direction: column;
@@ -228,6 +255,7 @@
             /* Usamos la textura de fondo clásica pero con opacidad baja sobre fondo gris de escala */
             background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
             background-blend-mode: multiply;
+            overflow: hidden; /* Evita que la ventana de chat se estire infinitamente hacia abajo */
         }
 
         /* Pantalla de Bienvenida */
@@ -549,7 +577,7 @@
             </div>
 
             <!-- Chat Activo -->
-            <div id="active-chat-wa" style="display: none; flex-direction: column; height: 100%;">
+            <div id="active-chat-wa" style="display: none; flex-direction: column; height: 100%; overflow: hidden;">
                 
                 <!-- Cabecera del Chat -->
                 <div class="chat-header">
