@@ -818,6 +818,35 @@
     </div>
 
     <!-- MODAL DE CONFIRMACIÓN CUSTOM -->
+    <div id="modal-confirmacion-custom" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full border border-slate-200 overflow-hidden">
+            <div class="p-5 flex flex-col gap-3">
+                <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2" id="lbl-confirm-titulo"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Confirmación</h4>
+                <p class="text-xs text-slate-600 leading-relaxed" id="lbl-confirm-mensaje">¿Estás seguro de que deseas realizar esta acción?</p>
+                <div class="flex gap-2 justify-end pt-3 border-t border-slate-100">
+                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3.5 py-1.5 rounded transition" id="btn-confirm-cancelar">Cancelar</button>
+                    <button class="bg-[#374151] hover:bg-gray-800 text-white font-bold text-xs px-3.5 py-1.5 rounded transition" id="btn-confirm-aceptar">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Lógica y Vinculación con la Base de Datos en la Nube de SigeDoc -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const dbCloud = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'notafacil-quilacura-v3';
+
+    let userLogged = null;
+
+    const initAuth = async () => {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
             await signInWithCustomToken(auth, __initial_auth_token);
         } else {
             await signInAnonymously(auth);
@@ -1184,129 +1213,6 @@
         const cursoActivo = getCursoActivo();
         eliminarCursoPorKey(db.cursoActivoKey);
     }
-            ]
-        }
-    ];
-
-    function iniciarApp() {
-        if(!db.plantillas || db.plantillas.length === 0) {
-            db.plantillas = plantillasPorDefecto;
-            guardarPersistencia();
-        }
-
-        let cursoActivo = getCursoActivo();
-
-        // Si es la primera vez o cambiamos de curso, ajustar el estudiante seleccionado por defecto
-        if (estudianteIdx === -1 || estudianteIdx >= cursoActivo.estudiantes.length) {
-            estudianteIdx = cursoActivo.estudiantes.length > 0 ? 0 : -1;
-        }
-
-        // Cargar Metadatos del curso en inputs
-        document.getElementById('meta-establecimiento').value = cursoActivo.meta.establecimiento || '';
-        document.getElementById('meta-comuna').value = cursoActivo.meta.comuna || '';
-        document.getElementById('meta-profesor').value = cursoActivo.meta.profesor || '';
-        document.getElementById('meta-curso').value = cursoActivo.meta.curso || '';
-        document.getElementById('meta-anio').value = cursoActivo.meta.anio || '';
-
-        // Iniciales del docente
-        const nombresProf = (cursoActivo.meta.profesor || 'CARLOS GODOY').split(' ');
-        let inicialesProf = "CG";
-        if(nombresProf.length >= 2 && nombresProf[0] && nombresProf[1]) {
-            inicialesProf = (nombresProf[0][0] + nombresProf[1][0]).toUpperCase();
-        } else if(nombresProf[0]) {
-            inicialesProf = nombresProf[0].slice(0,2).toUpperCase();
-        }
-        document.getElementById('lbl-avatar-iniciales').innerText = inicialesProf;
-
-        renderCursosDropdown();
-        renderEstudiantes();
-        renderEvaluacion();
-        renderSelectorPlantillas();
-    }
-
-    window.iniciarApp = iniciarApp;
-
-    function renderCursosDropdown() {
-        const select = document.getElementById('select-curso-activo');
-        select.innerHTML = '';
-        Object.keys(db.cursos).forEach(key => {
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.innerText = db.cursos[key].nombre;
-            if (key === db.cursoActivoKey) {
-                opt.selected = true;
-            }
-            select.appendChild(opt);
-        });
-    }
-
-    function cambiarCursoSeleccionado(key) {
-        db.cursoActivoKey = key;
-        let curso = getCursoActivo();
-        estudianteIdx = curso.estudiantes.length > 0 ? 0 : -1;
-        guardarPersistencia();
-        iniciarApp();
-        mostrarAlerta(`Cambiado al curso: ${curso.nombre}`, "success");
-    }
-
-    function abrirNuevoCursoModal() {
-        document.getElementById('modal-nuevo-curso-pantalla').style.display = 'flex';
-        document.getElementById('input-nuevo-curso-nombre').value = '';
-    }
-
-    function cerrarNuevoCursoModal() {
-        document.getElementById('modal-nuevo-curso-pantalla').style.display = 'none';
-    }
-
-    function guardarNuevoCursoCreado() {
-        const nombreVal = document.getElementById('input-nuevo-curso-nombre').value.trim();
-        if (!nombreVal) {
-            mostrarAlerta("Ingresa un nombre para el curso", "warning");
-            return;
-        }
-
-        const cursoActivo = getCursoActivo();
-        const key = "curso_" + Date.now();
-
-        // Crear curso nuevo heredando los metadatos institucionales del curso anterior para ahorrar tiempo
-        db.cursos[key] = {
-            nombre: nombreVal.toUpperCase(),
-            meta: {
-                establecimiento: cursoActivo.meta.establecimiento || "ESCUELA PARTICULAR Nº 8 QUILACURA",
-                comuna: cursoActivo.meta.comuna || "LAUTARO",
-                profesor: cursoActivo.meta.profesor || "CARLOS GODOY AEDO",
-                curso: nombreVal.toUpperCase(),
-                anio: cursoActivo.meta.anio || "2026"
-            },
-            estudiantes: []
-        };
-
-        db.cursoActivoKey = key;
-        estudianteIdx = -1;
-
-        guardarPersistencia();
-        cerrarNuevoCursoModal();
-        iniciarApp();
-        mostrarAlerta(`Curso "${nombreVal.toUpperCase()}" creado con éxito`, "success");
-    }
-
-    function eliminarCursoActual() {
-        let keys = Object.keys(db.cursos);
-        if (keys.length <= 1) {
-            mostrarAlerta("No puedes eliminar el único curso que te queda", "warning");
-            return;
-        }
-
-        const cursoActivo = getCursoActivo();
-        mostrarConfirmacion(`¿Deseas eliminar completamente el curso "${cursoActivo.nombre}" y todos sus alumnos inscritos?`, () => {
-            delete db.cursos[db.cursoActivoKey];
-            db.cursoActivoKey = Object.keys(db.cursos)[0];
-            estudianteIdx = -1;
-            guardarPersistencia();
-            iniciarApp();
-            mostrarAlerta("Curso removido correctamente", "info");
-        });
-    }
 
     function guardarMeta() {
         let cursoActivo = getCursoActivo();
@@ -1316,11 +1222,11 @@
         cursoActivo.meta.curso = document.getElementById('meta-curso').value;
         cursoActivo.meta.anio = document.getElementById('meta-anio').value;
 
-        // Actualizar el nombre en el selector lateral
+        // Actualizar el nombre en la pestaña superior
         cursoActivo.nombre = cursoActivo.meta.curso.toUpperCase() || "CURSO SIN NOMBRE";
 
         guardarPersistencia();
-        renderCursosDropdown();
+        renderCursosTabs();
     }
 
     function guardarPersistencia() {
@@ -1468,7 +1374,7 @@
             const tab = document.createElement('div');
             tab.className = `chat-item ${idx === estudianteIdx ? 'active' : ''}`;
             tab.innerHTML = `
-                <div class="student-avatar" style="background-color: ${idx === estudianteIdx ? 'var(--wa-gray-dark)' : '#64748b'};">${iniciales}</div>
+                <div class="student-avatar" style="background-color: ${idx === estudianteIdx ? 'var(--wa-teal)' : '#64748b'};">${iniciales}</div>
                 <div class="chat-info">
                     <div class="chat-info-top">
                         <div class="chat-name truncate max-w-[150px]" title="${est.nombre}">${est.nombre}</div>
