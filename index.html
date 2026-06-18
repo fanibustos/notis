@@ -837,63 +837,86 @@
     import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 
-    const firebaseConfig = JSON.parse(__firebase_config);
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const dbCloud = getFirestore(app);
+    // Validamos de forma segura la existencia de la configuración de red para evitar crashes en GitHub Pages
+    const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'notafacil-quilacura-v3';
 
     let userLogged = null;
+    let dbCloud = null;
+    let auth = null;
 
-    const initAuth = async () => {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-            await signInAnonymously(auth);
-        }
-    };
+    if (firebaseConfigStr) {
+        try {
+            const firebaseConfig = JSON.parse(firebaseConfigStr);
+            if (firebaseConfig && firebaseConfig.apiKey) {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                dbCloud = getFirestore(app);
 
-    initAuth().catch(err => {
-        console.error("Error de autenticación Firebase:", err);
-        document.getElementById('cloud-status').innerHTML = `<span class="text-red-600"><i class="fa-solid fa-wifi-slash"></i> Offline</span>`;
-    });
+                const initAuth = async () => {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                };
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            userLogged = user;
-            document.getElementById('cloud-status').innerHTML = `<span class="text-slate-600"><i class="fa-solid fa-cloud"></i> Sincronizado</span>`;
-            
-            try {
-                const docRef = doc(dbCloud, 'artifacts', appId, 'users', user.uid, 'datos', 'completo');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const datosNube = docSnap.data();
-                    window.db = datosNube;
-                    window.guardarPersistencia();
-                    window.iniciarApp();
-                }
-            } catch (error) {
-                console.error("Error cargando backup:", error);
+                // Escapamos los tags HTML con \x3C y \x3E para evitar problemas de parsing en el servidor
+                initAuth().catch(err => {
+                    console.error("Error de autenticación Firebase:", err);
+                    document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-red-600"\x3E\x3Ci class="fa-solid fa-wifi-slash"\x3E\x3C/i\x3E Offline\x3C/span\x3E';
+                });
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userLogged = user;
+                        document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-slate-600"\x3E\x3Ci class="fa-solid fa-cloud"\x3E\x3C/i\x3E Sincronizado\x3C/span\x3E';
+                        
+                        try {
+                            const docRef = doc(dbCloud, 'artifacts', appId, 'users', user.uid, 'datos', 'completo');
+                            const docSnap = await getDoc(docRef);
+                            if (docSnap.exists()) {
+                                const datosNube = docSnap.data();
+                                window.db = datosNube;
+                                window.guardarPersistencia();
+                                window.iniciarApp();
+                            }
+                        } catch (error) {
+                            console.error("Error cargando backup:", error);
+                        }
+                    }
+                });
             }
+        } catch (e) {
+            console.error("Error de inicialización de la nube:", e);
         }
-    });
+    } else {
+        // Fallback elegante si el usuario abre el sitio directo o en GitHub Pages
+        setTimeout(() => {
+            const statusEl = document.getElementById('cloud-status');
+            if (statusEl) {
+                statusEl.innerHTML = '\x3Cspan class="text-slate-500"\x3E\x3Ci class="fa-solid fa-wifi-slash"\x3E\x3C/i\x3E Modo Local\x3C/span\x3E';
+            }
+        }, 100);
+    }
 
+    // Guardado robusto que no interfiere si Firebase no está activo
     window.guardarEnNubeCompleto = async () => {
-        if (!userLogged) {
-            mostrarAlerta("No se ha completado la conexión", "error");
+        if (!dbCloud || !auth || !userLogged) {
+            mostrarAlerta("La sincronización en la nube no está activa en este servidor. Usando almacenamiento local seguro.", "warning");
             return;
         }
 
-        document.getElementById('cloud-status').innerHTML = `<span><i class="fa-solid fa-spinner fa-spin"></i> Guardando...</span>`;
+        document.getElementById('cloud-status').innerHTML = '\x3Cspan\x3E\x3Ci class="fa-solid fa-spinner fa-spin"\x3E\x3C/i\x3E Guardando...\x3C/span\x3E';
         try {
             const docRef = doc(dbCloud, 'artifacts', appId, 'users', userLogged.uid, 'datos', 'completo');
             await setDoc(docRef, window.db);
             
-            document.getElementById('cloud-status').innerHTML = `<span class="text-slate-600"><i class="fa-solid fa-cloud"></i> Sincronizado</span>`;
+            document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-slate-600"\x3E\x3Ci class="fa-solid fa-cloud"\x3E\x3C/i\x3E Sincronizado\x3C/span\x3E';
             mostrarAlerta("¡Respaldo guardado con éxito en la nube!", "success");
         } catch (e) {
             console.error("Error guardando:", e);
-            document.getElementById('cloud-status').innerHTML = `<span class="text-red-600"><i class="fa-solid fa-wifi-slash"></i> Error</span>`;
+            document.getElementById('cloud-status').innerHTML = '\x3Cspan class="text-red-600"\x3E\x3Ci class="fa-solid fa-wifi-slash"\x3E\x3C/i\x3E Error\x3C/span\x3E';
             mostrarAlerta("Error al sincronizar con la nube", "error");
         }
     };
